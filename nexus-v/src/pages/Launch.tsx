@@ -35,6 +35,10 @@ const SOI_KM = 600_000;
 const FOV = (70 * Math.PI) / 180;
 const VIEW_H = 600;
 
+/* Altitude (km) at which the craft counts as "in space". Matches the point
+   where the sky fades fully to black. Solar panels only show beyond this. */
+const SPACE_KM = 100;
+
 const clamp = (v: number, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -1378,6 +1382,21 @@ export default function Launch() {
   const t = sample(plan, elapsed, task, planetR);
   const isDone = elapsed >= plan.totalMs;
 
+  // Solar panels stay stowed until the craft is out of the atmosphere
+  const solar = !!mission.parts.power?.solar;
+  const inSpace = t.earthKm >= SPACE_KM;
+  const solarVisible = solar && inSpace;
+
+  // Parts handed to CraftView: same build, but with solar panels and the
+  // landing vehicle held back until the craft is out of the atmosphere
+  const craftParts = useMemo(() => {
+    if (inSpace) return mission.parts;
+    const next: typeof mission.parts = { ...mission.parts };
+    if (solar && next.power) next.power = { ...next.power, solar: false };
+    delete (next as Record<string, unknown>).landing;
+    return next;
+  }, [mission.parts, solar, inSpace]);
+
   // Propellant
   const fuelBase = baseResources.find((r) => r.key === "fuel");
   const fuelCapacity = fuelBase
@@ -1809,7 +1828,6 @@ export default function Launch() {
   const targetPx = Math.max(2, (t.targetAng / FOV) * VIEW_H * zoom);
 
   const kind = t.seg.kind;
-  const solar = !!mission.parts.power?.solar;
   const hasPower = !!mission.parts.power;
   const solarFrac = 1 / (t.sunAU * t.sunAU);
   const launchOn = kind === "ascent" || kind === "park" || kind === "tpi";
@@ -1901,7 +1919,7 @@ export default function Launch() {
             zoom={zoom}
             sky={sky}
             tracking={kind === "ascent"}
-            parts={mission.parts}
+            parts={craftParts}
             launchOn={launchOn}
             burning={engineLit && kind === "ascent"}
             glitch={cameraGlitch}
@@ -1952,7 +1970,7 @@ export default function Launch() {
             <div className="pointer-events-none absolute inset-0 flex flex-col justify-end">
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#05070a] via-[#05070a]/90 to-transparent" />
               <div className="absolute bottom-0 left-1/2 h-32 w-[120%] -translate-x-1/2 rounded-t-[100%] border-t-2 border-white/10 bg-[#0b0f19]" />
-              {solar && (
+              {solarVisible && (
                 <>
                   <div className="absolute bottom-20 left-[10%] h-16 w-24 -skew-y-6 sm:w-40 rounded-sm border border-sky-300/30 bg-[repeating-linear-gradient(90deg,rgba(30,64,175,0.7)_0_14px,rgba(15,23,42,0.9)_14px_16px)]" />
                   <div className="absolute bottom-20 right-[10%] h-16 w-24 skew-y-6 sm:w-40 rounded-sm border border-sky-300/30 bg-[repeating-linear-gradient(90deg,rgba(30,64,175,0.7)_0_14px,rgba(15,23,42,0.9)_14px_16px)]" />
@@ -2029,7 +2047,7 @@ export default function Launch() {
                 }}
               >
                 <CraftView
-                  parts={mission.parts}
+                  parts={craftParts}
                   launchOn={launchOn}
                   flame={engineLit && kind === "ascent"}
                   glow={engineLit && (kind === "tpi" || kind === "arrival")}
