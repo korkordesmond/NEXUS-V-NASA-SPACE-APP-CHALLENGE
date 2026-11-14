@@ -23,7 +23,7 @@ function ResourcePanel({ resources, summary }: { resources: Resource[]; summary:
   const alerts = resources.filter((r) => r.status === "warn" || r.status === "over");
 
   return (
-    <aside className={`${panel} flex min-h-0 flex-col overflow-hidden`}>
+    <aside className={`${panel} flex max-h-[28rem] min-h-0 flex-col overflow-hidden lg:max-h-none`}>
       <div className="shrink-0">
         <h2 className={eyebrow} style={{ fontFamily: MONO }}>Resources / limits</h2>
         <p className="mt-1 text-sm text-slate-300" style={{ fontFamily: SERIF }}>{summary}</p>
@@ -34,7 +34,7 @@ function ResourcePanel({ resources, summary }: { resources: Resource[]; summary:
           const pct = r.limit > 0 ? Math.min(100, (r.used / r.limit) * 100) : r.used > 0 ? 100 : 0;
           return (
             <div key={r.key}>
-              <div className="flex items-baseline justify-between gap-2">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
                 <span className="text-sm text-slate-300" style={{ fontFamily: MONO }}>{r.label}</span>
                 <span className={`text-xs tabular-nums ${STATUS_TEXT[r.status]}`} style={{ fontFamily: MONO }}>
                   {r.used.toLocaleString()} / {r.limit.toLocaleString()} <span className="text-slate-500">{r.unit}</span>
@@ -148,7 +148,7 @@ function RocketView({ parts, active, sections, onSelect }: { parts: Mission["par
 
 function SectionTabs({ sections, index, parts, onPick }: { sections: SectionInfo[]; index: number; parts: Mission["parts"]; onPick: (i: number) => void; }) {
   return (
-    <div className="grid shrink-0 grid-cols-3 gap-2">
+    <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3">
       {sections.map((s, i) => {
         const filled = !!parts[s.id];
         const active = i === index;
@@ -201,8 +201,8 @@ function PartList({ parts, equippedId, hidden, planet, onPick, onClear }: { part
               className={`w-full border p-3 text-left pr-10 transition ${active ? "border-cyan-400/80 bg-cyan-400/10" : "border-white/10 bg-black/40 hover:border-white/30 hover:bg-white/[0.04]"}`}
             >
               <div className="flex items-baseline justify-between gap-3">
-                <span className="font-semibold tracking-tight text-white" style={{ fontFamily: SERIF }}>{p.name}</span>
-                <span className="text-sm tabular-nums text-cyan-300" style={{ fontFamily: MONO }}>{p.est ? "~" : ""}${Math.round(partCost(p)).toLocaleString()}M</span>
+                <span className="min-w-0 break-words font-semibold tracking-tight text-white" style={{ fontFamily: SERIF }}>{p.name}</span>
+                <span className="shrink-0 text-sm tabular-nums text-cyan-300" style={{ fontFamily: MONO }}>{p.est ? "~" : ""}${Math.round(partCost(p)).toLocaleString()}M</span>
               </div>
               <p className="mt-1 text-xs text-slate-400" style={{ fontFamily: MONO }}>{p.blurb}</p>
               <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[0.7rem] tabular-nums" style={{ fontFamily: MONO }}>
@@ -210,7 +210,7 @@ function PartList({ parts, equippedId, hidden, planet, onPick, onClear }: { part
               </dl>
             </button>
             {active && (
-              <button onClick={(e) => { e.stopPropagation(); onClear(); }} aria-label="Remove component" className="absolute right-2 top-2 grid size-7 place-items-center bg-rose-500/10 text-rose-400 opacity-0 transition group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-300">
+              <button onClick={(e) => { e.stopPropagation(); onClear(); }} aria-label="Remove component" className="absolute right-2 top-2 grid size-7 place-items-center bg-rose-500/10 text-rose-400 opacity-100 transition focus:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-300">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="size-4"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
             )}
@@ -260,20 +260,20 @@ export default function Build() {
   };
 
   return (
-    <section className="flex h-full min-h-0 flex-col overflow-hidden px-6 pb-4 pt-4">
-      <div className={`grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto py-2 ${noScrollbar} md:grid-cols-[16rem_minmax(0,1fr)_minmax(0,22rem)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden`}>
+    <section className="flex h-full min-h-0 flex-col overflow-hidden px-3 pb-3 pt-3 sm:px-6 sm:pb-4 sm:pt-4">
+      <div className={`grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto py-2 ${noScrollbar} lg:grid-cols-[16rem_minmax(0,1fr)_minmax(0,22rem)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden`}>
         <ResourcePanel resources={resources} summary={missionSummary(mission)} />
 
-        <div className="hidden min-h-0 flex-col gap-4 md:flex">
-          <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden border border-white/10 bg-black/20">
+        <div className="flex min-h-0 flex-col gap-4">
+          <div className="hidden min-h-0 flex-1 items-center justify-center overflow-hidden border border-white/10 bg-black/20 lg:flex">
             <RocketView parts={mission.parts} active={section.id} sections={sections} onSelect={handleImageSelect} />
           </div>
           <SectionTabs sections={sections} index={safeIndex} parts={mission.parts} onPick={setIndex} />
         </div>
 
-        <aside className={`${panel} flex min-h-0 flex-col gap-3 overflow-hidden`}>
+        <aside className={`${panel} flex max-h-[32rem] min-h-0 flex-col gap-3 overflow-hidden lg:max-h-none`}>
           <div className="shrink-0">
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
               <h2 className={eyebrow} style={{ fontFamily: MONO }}>{section.title}</h2>
               <span className="text-[0.65rem] tabular-nums text-slate-500" style={{ fontFamily: MONO }}>{safeIndex + 1}/{sections.length}</span>
             </div>
@@ -290,7 +290,7 @@ export default function Build() {
           <button
             onClick={next}
             disabled={!canAdvance}
-            className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 px-10 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-30"
+            className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] sm:px-10 text-cyan-300 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-30"
             style={{ fontFamily: MONO }}
           >
             {isLast ? "Go to launch" : `Next: ${sections[safeIndex + 1].title}`}

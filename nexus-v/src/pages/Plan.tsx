@@ -61,8 +61,8 @@ function BudgetStep() {
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-8">
-      <div className="relative w-full max-w-sm border border-white/20 bg-black/60 px-8 py-6">
+    <div className="flex h-full min-h-0 flex-col items-center gap-6 overflow-y-auto py-2 sm:gap-8 [&>*:first-child]:mt-auto [&>*:last-child]:mb-auto">
+      <div className="relative w-full max-w-sm shrink-0 border border-white/20 bg-black/60 px-5 py-5 sm:px-8 sm:py-6">
         <div className="absolute -left-[1px] -top-[1px] size-3 border-l-2 border-t-2 border-cyan-400" />
         <div className="absolute -right-[1px] -top-[1px] size-3 border-r-2 border-t-2 border-cyan-400" />
         <div className="absolute -bottom-[1px] -left-[1px] size-3 border-b-2 border-l-2 border-cyan-400" />
@@ -71,19 +71,19 @@ function BudgetStep() {
         <p className="mb-2 text-xs font-bold uppercase tracking-widest text-cyan-400" style={{ fontFamily: MONO }}>
           Mission Budget
         </p>
-        <p className="flex items-baseline justify-end gap-1 tabular-nums text-white" style={{ fontFamily: MONO }}>
+        <p className="flex min-w-0 items-baseline justify-end gap-1 tabular-nums text-white" style={{ fontFamily: MONO }}>
           <span className="text-lg text-slate-500">$</span>
-          <span className="text-5xl font-medium tracking-tight">{displayValue}</span>
+          <span className="text-4xl font-medium tracking-tight">{displayValue}</span>
           <span className="text-lg font-medium text-slate-400">{suffix}</span>
         </p>
       </div>
 
-      <div ref={gridRef} className="grid grid-cols-3 gap-3">
+      <div ref={gridRef} className="grid shrink-0 grid-cols-3 gap-3">
         {keys.map((k) => (
           <button
             key={k}
             onClick={() => press(k)}
-            className="grid size-16 place-items-center border border-white/20 bg-white/5 text-2xl text-slate-100 transition hover:border-cyan-400/50 hover:bg-cyan-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:scale-95"
+            className="grid size-14 place-items-center sm:size-16 border border-white/20 bg-white/5 text-2xl text-slate-100 transition hover:border-cyan-400/50 hover:bg-cyan-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:scale-95"
             style={{ fontFamily: MONO }}
           >
             {k}
@@ -178,9 +178,9 @@ function PlanetStep() {
   useArrowNav(gridRef, "button", { orientation: "grid", autoFocus: true });
 
   return (
-    <div className="relative flex h-full items-center justify-center">
+    <div className="relative flex h-full min-h-0 justify-center overflow-y-auto">
       <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50" style={{ backgroundImage: STARS }} />
-      <div ref={gridRef} className="relative grid h-full max-h-[30rem] w-full max-w-3xl grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-4 p-2 sm:grid-cols-3 sm:grid-rows-[repeat(2,minmax(0,1fr))]">
+      <div ref={gridRef} className="relative grid h-full max-h-[30rem] w-full max-w-3xl grid-cols-2 grid-rows-[repeat(3,minmax(8.5rem,1fr))] gap-3 p-2 sm:grid-cols-3 sm:grid-rows-[repeat(2,minmax(8.5rem,1fr))] sm:gap-4">
         {PLANETS.map((p, i) => {
           const isActive = mission.planet?.id === p.id;
           return (
@@ -233,7 +233,7 @@ function DayStepper({ value, onChange, min = 1, max = 999 }: { value: number; on
   };
 
   return (
-    <div className="flex items-center justify-between border border-white/20 bg-black/40 px-5 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 border border-white/20 bg-black/40 px-4 py-3 sm:px-5">
       <span className="text-sm font-medium uppercase tracking-wider text-slate-300" style={{ fontFamily: MONO }}>
         How many days?
       </span>
@@ -274,8 +274,8 @@ function TaskStep() {
   useArrowNav(listRef, "button", { orientation: "vertical", autoFocus: true });
 
   return (
-    <div ref={listRef} className={`mx-auto flex h-full w-full max-w-lg flex-col justify-start overflow-y-auto py-3 my-auto ${noScrollbar}`}>
-      <div className="flex flex-col gap-3 px-2">
+    <div ref={listRef} className={`flex h-full min-h-0 w-full overflow-y-auto ${noScrollbar}`}>
+      <div className="m-auto flex w-full max-w-lg flex-col gap-3 px-2 py-3">
         {TASKS.map((t) => {
           const isActive = mission.task === t.id;
           return (
@@ -331,7 +331,7 @@ export default function Plan() {
   });
 
   return (
-    <section className="flex h-full flex-col overflow-hidden px-6 pb-4 pt-6">
+    <section className="flex h-full flex-col overflow-hidden px-4 pb-4 pt-4 sm:px-6 sm:pt-6">
       <header className="mx-auto w-full max-w-3xl shrink-0 text-center">
         <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl" style={{ fontFamily: SERIF }}>
           {TITLES[sub]}
@@ -343,7 +343,7 @@ export default function Plan() {
         </div>
       </header>
 
-      <div className={`relative flex min-h-0 flex-1 flex-col py-6 ${noScrollbar}`}>
+      <div className={`relative flex min-h-0 flex-1 flex-col py-4 sm:py-6 ${noScrollbar}`}>
         {sub === 0 && <BudgetStep />}
         {sub === 1 && <PlanetStep />}
         {sub === 2 && <TaskStep />}
@@ -354,7 +354,7 @@ export default function Plan() {
           <button
             onClick={next}
             disabled={!valid}
-            className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 px-10 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-30"
+            className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] sm:px-10 text-cyan-300 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-30"
             style={{ fontFamily: MONO }}
           >
             {ACTIONS[sub]}

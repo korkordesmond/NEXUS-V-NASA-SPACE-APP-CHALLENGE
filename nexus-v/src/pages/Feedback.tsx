@@ -10,10 +10,17 @@ const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
 const SERIF = '"Source Serif 4", "Iowan Old Style", Charter, Georgia, serif';
 
 const eyebrow = "text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-400";
-const card = "border border-white/20 bg-black/40 p-5";
+const card = "border border-white/20 bg-black/40 p-4 sm:p-5";
 
 const GRADE_COLOR: Record<Grade, string> = { S: "text-cyan-300", A: "text-cyan-300", B: "text-emerald-300", C: "text-amber-300", D: "text-rose-300", F: "text-rose-400" };
 const TONE_DOT: Record<Tone, string> = { good: "bg-emerald-400", bad: "bg-rose-500", tip: "bg-amber-400" };
+
+/* Decision quality arrives as "good" | "ok" | "bad"; older data used a 0-1 number. Accept both. */
+type Tier = "good" | "ok" | "bad";
+const qualityTier = (q: unknown): Tier =>
+  typeof q === "number" ? (q >= 0.8 ? "good" : q >= 0.5 ? "ok" : "bad") : q === "good" || q === "ok" ? q : "bad";
+const TIER_COLOR: Record<Tier, string> = { good: "text-emerald-300", ok: "text-amber-300", bad: "text-rose-300" };
+const TIER_LABEL: Record<Tier, string> = { good: "Good", ok: "Okay", bad: "Poor" };
 
 function useCountUp(target: number, ms = 1200) {
   const [value, setValue] = useState(0);
@@ -64,7 +71,7 @@ export default function Feedback() {
   ];
 
   return (
-    <section className="flex h-full flex-col overflow-hidden px-6 pb-4 pt-6">
+    <section className="flex h-full flex-col overflow-hidden px-4 pb-4 pt-4 sm:px-6 sm:pt-6">
       <header className="mx-auto w-full max-w-5xl shrink-0 text-center">
         <p className={eyebrow} style={{ fontFamily: MONO }}>
           Mission debrief · {mission.planet.name} · {TASK_LABEL[mission.task]}
@@ -81,7 +88,7 @@ export default function Feedback() {
             <div className="absolute -right-[1px] -top-[1px] size-3 border-r-2 border-t-2 border-cyan-400" />
             <div className="absolute -bottom-[1px] -left-[1px] size-3 border-b-2 border-l-2 border-cyan-400" />
             <div className="absolute -bottom-[1px] -right-[1px] size-3 border-b-2 border-r-2 border-cyan-400" />
-            <span className={`text-[8rem] font-semibold leading-none ${GRADE_COLOR[score.grade]}`} style={{ fontFamily: SERIF }} aria-label={`Grade ${score.grade}`}>
+            <span className={`text-[6rem] font-semibold leading-none sm:text-[8rem] ${GRADE_COLOR[score.grade]}`} style={{ fontFamily: SERIF }} aria-label={`Grade ${score.grade}`}>
               {score.grade}
             </span>
             <p className="mt-4 flex items-baseline gap-1 tabular-nums text-white" style={{ fontFamily: MONO }}>
@@ -93,7 +100,7 @@ export default function Feedback() {
           <div className={`${card} flex flex-col justify-center gap-5`}>
             {score.categories.map((c) => (
               <div key={c.key}>
-                <div className="flex items-baseline justify-between gap-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-sm font-semibold text-slate-200" style={{ fontFamily: SERIF }}>
                     {c.label} <span className="ml-2 text-[11px] font-normal text-slate-500" style={{ fontFamily: MONO }}>{c.hint}</span>
                   </span>
@@ -107,11 +114,11 @@ export default function Feedback() {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
           {facts.map(([k, v]) => (
-            <div key={k} className="border border-white/20 bg-black/40 px-4 py-3">
+            <div key={k} className="min-w-0 border border-white/20 bg-black/40 px-3 py-3 sm:px-4">
               <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500" style={{ fontFamily: MONO }}>{k}</p>
-              <p className="mt-1 text-lg tabular-nums text-white" style={{ fontFamily: MONO }}>{v}</p>
+              <p className="mt-1 break-words text-base tabular-nums text-white sm:text-lg" style={{ fontFamily: MONO }}>{v}</p>
             </div>
           ))}
         </div>
@@ -133,15 +140,15 @@ export default function Feedback() {
             <h2 className={eyebrow} style={{ fontFamily: MONO }}>Your decisions in flight</h2>
             <ul className="mt-4 flex flex-col gap-2">
               {result.decisions.map((d, i) => (
-                <li key={i} className="flex items-start justify-between gap-4 border border-white/10 bg-black/30 px-4 py-3">
+                <li key={i} className="flex flex-col items-start justify-between gap-2 border border-white/10 bg-black/30 px-3 py-3 sm:flex-row sm:gap-4 sm:px-4">
                   <div>
-                    <p className="text-sm font-semibold text-white" style={{ fontFamily: MONO }}>
+                    <p className="break-words text-sm font-semibold text-white" style={{ fontFamily: MONO }}>
                       {d.title}: <span className="font-normal text-slate-300">{d.choice}</span>
                     </p>
-                    <p className="mt-1 text-xs text-slate-400" style={{ fontFamily: MONO }}>{d.text}</p>
+                    <p className="mt-1 break-words text-xs text-slate-400" style={{ fontFamily: MONO }}>{d.text}</p>
                   </div>
-                  <span className={`shrink-0 text-xs ${d.quality >= 0.8 ? "text-emerald-300" : d.quality >= 0.5 ? "text-amber-300" : "text-rose-300"}`} style={{ fontFamily: MONO }}>
-                    {d.quality >= 0.8 ? "Good" : d.quality >= 0.5 ? "Okay" : "Poor"}
+                  <span className={`shrink-0 text-xs ${TIER_COLOR[qualityTier(d.quality)]}`} style={{ fontFamily: MONO }}>
+                    {TIER_LABEL[qualityTier(d.quality)]}
                   </span>
                 </li>
               ))}
@@ -152,7 +159,7 @@ export default function Feedback() {
 
       <div className="shrink-0 pt-4">
         <StageNav>
-          <button onClick={newMission} className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 px-10 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300 transition hover:bg-cyan-400/20" style={{ fontFamily: MONO }}>
+          <button onClick={newMission} className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] sm:px-10 text-cyan-300 transition hover:bg-cyan-400/20" style={{ fontFamily: MONO }}>
             Start new mission
             <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
           </button>
