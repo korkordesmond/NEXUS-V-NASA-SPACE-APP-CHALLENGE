@@ -485,7 +485,7 @@ const warpFmt = new Intl.NumberFormat("en", {
 const fmtPts = (n: number) => `${n > 0 ? "+" : ""}${n.toLocaleString()}`;
 
 /* ─────────── Draggable Wrapper (Sharp version) ─────────── */
-const CANVAS_INSETS = { top: 16, right: 16, bottom: 176, left: 16 };
+const CANVAS_INSETS = { top: 12, right: 12, bottom: 12, left: 12 };
 const PANEL_CHROME = 100;
 
 function Draggable({
@@ -624,7 +624,7 @@ function Draggable({
       onBlur={onBlur}
       onPointerDown={onActivate}
       style={{ zIndex }}
-      className="absolute left-0 top-0 flex w-60 flex-col will-change-transform"
+      className="absolute left-0 top-0 flex w-60 max-w-[calc(100%-1.5rem)] flex-col will-change-transform"
     >
       <div
         className={`flex flex-col border p-4 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${
@@ -694,7 +694,7 @@ function FeedFinish({ rec = true }: { rec?: boolean }) {
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.4)_50%)] bg-[length:100%_4px] opacity-20" />
       {rec && (
         <div
-          className="pointer-events-none absolute bottom-6 left-6 flex items-center gap-1.5 text-[10px] tracking-widest text-rose-300/90"
+          className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 sm:bottom-6 sm:left-6 text-[10px] tracking-widest text-rose-300/90"
           style={{ fontFamily: MONO }}
         >
           <span className="size-2 animate-pulse bg-rose-500" />
@@ -1250,7 +1250,7 @@ function EarthFeed({
 
       {tracking && (
         <div
-          className="pointer-events-none absolute bottom-12 left-6 text-[10px] leading-relaxed tracking-widest text-slate-200/90"
+          className="pointer-events-none absolute bottom-10 left-3 text-[10px] sm:bottom-12 sm:left-6 leading-relaxed tracking-widest text-slate-200/90"
           style={{ fontFamily: MONO }}
         >
           <div className="text-cyan-300/90">CAM_01 · LAUNCH_PAD</div>
@@ -1882,11 +1882,13 @@ export default function Launch() {
   const cardUrgent = cardMsLeft <= 3000;
 
   return (
-    <section className="relative flex h-full flex-col overflow-hidden px-6 pb-4 pt-4">
+    <section className="relative flex h-full flex-col gap-3 overflow-hidden px-3 pb-3 pt-3 sm:px-6 sm:pb-4 sm:pt-4">
+      {/* Stage: canvas + floating panels share this positioned box */}
+      <div className="relative min-h-0 flex-1">
       {/* ─────────── Center Canvas ─────────── */}
       <div
         ref={canvasRef}
-        className={`absolute inset-4 bottom-44 z-0 overflow-hidden border border-white/20 bg-black shadow-2xl ${
+        className={`absolute inset-0 z-0 touch-none overflow-hidden border border-white/20 bg-black shadow-2xl ${
           isDraggingCamera.current ? "cursor-grabbing" : "cursor-crosshair"
         }`}
       >
@@ -1952,12 +1954,12 @@ export default function Launch() {
               <div className="absolute bottom-0 left-1/2 h-32 w-[120%] -translate-x-1/2 rounded-t-[100%] border-t-2 border-white/10 bg-[#0b0f19]" />
               {solar && (
                 <>
-                  <div className="absolute bottom-20 left-[10%] h-16 w-40 -skew-y-6 rounded-sm border border-sky-300/30 bg-[repeating-linear-gradient(90deg,rgba(30,64,175,0.7)_0_14px,rgba(15,23,42,0.9)_14px_16px)]" />
-                  <div className="absolute bottom-20 right-[10%] h-16 w-40 skew-y-6 rounded-sm border border-sky-300/30 bg-[repeating-linear-gradient(90deg,rgba(30,64,175,0.7)_0_14px,rgba(15,23,42,0.9)_14px_16px)]" />
+                  <div className="absolute bottom-20 left-[10%] h-16 w-24 -skew-y-6 sm:w-40 rounded-sm border border-sky-300/30 bg-[repeating-linear-gradient(90deg,rgba(30,64,175,0.7)_0_14px,rgba(15,23,42,0.9)_14px_16px)]" />
+                  <div className="absolute bottom-20 right-[10%] h-16 w-24 skew-y-6 sm:w-40 rounded-sm border border-sky-300/30 bg-[repeating-linear-gradient(90deg,rgba(30,64,175,0.7)_0_14px,rgba(15,23,42,0.9)_14px_16px)]" />
                 </>
               )}
               {hasPower && !solar && (
-                <div className="absolute bottom-24 right-[12%] h-4 w-40 rounded-full border border-white/20 bg-slate-700" />
+                <div className="absolute bottom-24 right-[12%] h-4 w-24 sm:w-40 rounded-full border border-white/20 bg-slate-700" />
               )}
               <div className="relative mx-auto mb-4 w-64">
                 <div className="mx-auto h-24 w-16 rounded-t-full border-x-2 border-t-2 border-white/20 bg-slate-800/80" />
@@ -2134,7 +2136,7 @@ export default function Launch() {
         )}
 
         {/* Overlay UI */}
-        <div className="pointer-events-none absolute left-6 top-6 z-10 flex flex-wrap items-center gap-2">
+        <div className="pointer-events-none absolute left-3 right-3 top-3 z-10 flex flex-wrap items-center gap-2 sm:left-6 sm:right-20 sm:top-6">
           <span className="border border-white/20 bg-black/60 px-3 py-1 text-xs font-bold tracking-widest text-cyan-300" style={{ fontFamily: MONO }}>
             {activeFeed === "earth"
               ? "EARTH_CAM"
@@ -2166,7 +2168,7 @@ export default function Launch() {
 
         {failure && (
           <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-rose-950/40">
-            <span className="border border-rose-500/50 bg-black/80 px-6 py-3 text-2xl uppercase tracking-[0.2em] text-rose-300" style={{ fontFamily: MONO }}>
+            <span className="mx-4 border border-rose-500/50 bg-black/80 px-4 py-2 text-center text-lg uppercase tracking-[0.2em] text-rose-300 sm:px-6 sm:py-3 sm:text-2xl" style={{ fontFamily: MONO }}>
               {failure === "launch" ? "LAUNCH_FAILURE" : "SPACECRAFT_LOST"}
             </span>
           </div>
@@ -2174,13 +2176,13 @@ export default function Launch() {
 
         {countdown !== null && (
           <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
-            <span className="text-7xl tabular-nums text-white/90" style={{ fontFamily: MONO }}>
+            <span className="text-5xl tabular-nums text-white/90 sm:text-7xl" style={{ fontFamily: MONO }}>
               T-{countdown}
             </span>
           </div>
         )}
 
-        <div className="absolute bottom-6 right-6 z-10 flex flex-col items-center gap-2 border border-white/20 bg-black/60 p-1.5 backdrop-blur-md">
+        <div className="absolute bottom-3 right-3 z-10 flex flex-col items-center gap-2 sm:bottom-6 sm:right-6 border border-white/20 bg-black/60 p-1.5 backdrop-blur-md">
           <button
             onClick={() => setZoom((z) => Math.min(5, z + 0.2))}
             className="grid size-8 place-items-center text-slate-400 hover:bg-white/10 hover:text-white"
@@ -2322,11 +2324,11 @@ export default function Launch() {
               {rows.map(([k, v]) => (
                 <div
                   key={k}
-                  className="flex justify-between text-[10px] text-slate-400"
+                  className="flex justify-between gap-3 text-[10px] text-slate-400"
                   style={{ fontFamily: MONO }}
                 >
                   <span>{k}</span>
-                  <span className="tabular-nums" style={{ fontFamily: MONO }}>
+                  <span className="text-right tabular-nums" style={{ fontFamily: MONO }}>
                     {v}
                   </span>
                 </div>
@@ -2356,8 +2358,10 @@ export default function Launch() {
       </Draggable>
 
       {/* ─────────── Bottom panel ─────────── */}
-      <div className="absolute inset-x-6 bottom-4 z-20 flex shrink-0 flex-col border border-white/20 bg-[#05070a]/95 p-4 shadow-2xl">
-        <div className="flex items-center justify-between pb-3">
+      </div>
+
+      <div className="relative z-20 flex max-h-[46dvh] shrink-0 flex-col overflow-y-auto border border-white/20 bg-[#05070a]/95 p-3 shadow-2xl sm:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
           <div className="flex items-baseline gap-3">
             <span className={eyebrow} style={{ fontFamily: MONO }}>
               MET
@@ -2370,12 +2374,12 @@ export default function Launch() {
                   : "T-00:00:10"}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500" style={{ fontFamily: MONO }}>
               Status
             </span>
             <span
-              className={`border px-3 py-1 text-xs font-bold uppercase ${
+              className={`min-w-0 break-words border px-3 py-1 text-xs font-bold uppercase ${
                 fuelEmpty || failure
                   ? "border-rose-500/30 bg-rose-500/10 text-rose-300"
                   : "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
@@ -2427,7 +2431,7 @@ export default function Launch() {
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
           <p className="text-xs text-slate-400 uppercase tracking-widest" style={{ fontFamily: MONO }}>
             {failure === "launch"
               ? "LAUNCH FAILURE. LOADING FEEDBACK..."
@@ -2448,7 +2452,7 @@ export default function Launch() {
                             : "SIMULATION RUNNING..."}
           </p>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {isLaunched && !isDone && !fuelEmpty && !failure && !activeEvent && (
               <button
                 onClick={() => setIsPaused((p) => !p)}
@@ -2472,18 +2476,18 @@ export default function Launch() {
       {/* ─────────── Post-flight review modal ─────────── */}
       {activeEvent && (
         <div
-          className="absolute inset-0 z-50 grid place-items-center bg-black/60 px-6 backdrop-blur-sm"
+          className="absolute inset-0 z-50 flex overflow-y-auto bg-black/60 p-3 backdrop-blur-sm sm:p-6"
           role="dialog"
           aria-modal="true"
           aria-label={`Post-flight review: ${activeEvent.title}`}
         >
           <div
             key={debriefIndex}
-            className={`w-full max-w-lg border bg-[#05070a]/95 p-6 shadow-2xl transition-colors ${
+            className={`m-auto w-full max-w-lg border bg-[#05070a]/95 p-4 shadow-2xl transition-colors sm:p-6 ${
               cardUrgent ? "border-rose-500/60" : "border-amber-400/40"
             }`}
           >
-            <div className="flex items-baseline justify-between gap-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <p
                 className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-300/90"
                 style={{ fontFamily: MONO }}
@@ -2561,7 +2565,7 @@ export default function Launch() {
               })}
             </div>
 
-            <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
               <p className="text-[11px] text-slate-500 uppercase tracking-wider" style={{ fontFamily: MONO }}>
                 Let the timer run out to skip.
               </p>

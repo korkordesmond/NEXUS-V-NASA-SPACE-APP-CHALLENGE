@@ -68,7 +68,7 @@ export default function CreateTeam() {
   const memberCount = team?.members.length ?? 1;
 
   return (
-    <section className="relative flex h-dvh flex-col overflow-hidden bg-[#05070a] text-slate-100 selection:bg-cyan-400/30" style={{ fontFamily: MONO }}>
+    <section className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#05070a] text-slate-100 selection:bg-cyan-400/30" style={{ fontFamily: MONO }}>
       {/* Pixel Grid Background */}
       <div 
         className="pointer-events-none absolute inset-0 opacity-20"
@@ -80,10 +80,10 @@ export default function CreateTeam() {
         }}
       />
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col p-4 sm:p-8">
+      <div className="relative z-10 flex flex-1 flex-col p-4 sm:p-8">
         
         {/* Top Header */}
-        <header className="flex shrink-0 items-center justify-between border-b border-white/10 pb-4">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 pb-4">
           <button onClick={() => navigate("/")} className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-cyan-300">
             <span className="flex size-8 items-center justify-center border border-white/20 bg-white/5 transition group-hover:border-cyan-400/50">
               <ChevronLeft className="size-4" />
@@ -91,14 +91,14 @@ export default function CreateTeam() {
             Exit
           </button>
 
-          <div className="flex items-center gap-2 border border-white/20 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-widest text-slate-300">
+          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap border border-white/20 bg-white/5 px-2 py-1.5 text-[10px] uppercase tracking-widest text-slate-300 sm:px-3 sm:text-xs">
             <span className="size-2 animate-pulse bg-cyan-400" />
             {created ? "Lobby.Live" : "Setup.Init"}
           </div>
         </header>
 
         {/* Main Content Area */}
-        <div className="flex flex-1 flex-col justify-center py-8">
+        <div className="flex flex-1 flex-col justify-center py-6 sm:py-8">
           
           {!created ? (
             <form onSubmit={handleSubmit} noValidate className="mx-auto w-full max-w-lg animate-slide-in">
@@ -125,13 +125,13 @@ export default function CreateTeam() {
                     maxLength={20}
                     autoFocus
                     disabled={isSubmitting}
-                    className="w-full bg-transparent py-4 pl-4 text-lg text-white placeholder-slate-600 outline-none"
+                    className="min-w-0 flex-1 bg-transparent py-4 pl-4 text-base text-white placeholder-slate-600 outline-none sm:text-lg"
                   />
                   {/* Chevron Navigation Only */}
                   <button
                     type="submit"
                     disabled={isSubmitting || teamName.trim().length < 3}
-                    className="flex h-full items-center justify-center border-l border-white/20 bg-white/5 px-6 py-4 text-cyan-300 transition hover:bg-cyan-400/20 disabled:opacity-30 disabled:hover:bg-white/5"
+                    className="flex shrink-0 items-center justify-center self-stretch border-l border-white/20 bg-white/5 px-4 py-4 text-cyan-300 sm:px-6 transition hover:bg-cyan-400/20 disabled:opacity-30 disabled:hover:bg-white/5"
                   >
                     <ChevronRight className={`size-6 ${isSubmitting ? 'animate-pulse' : ''}`} />
                   </button>
@@ -149,17 +149,17 @@ export default function CreateTeam() {
               <div className="mb-8 text-center">
                 <p className="text-xs uppercase tracking-[0.3em] text-cyan-500">Step 02 / 02</p>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl" style={{ fontFamily: SERIF }}>
-                  {team?.name ?? teamName}
+                  <span className="break-words">{team?.name ?? teamName}</span>
                 </h1>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
                 
                 {/* Invite Panel */}
-                <div className="border border-white/20 bg-black/40 p-6 relative">
+                <div className="border border-white/20 bg-black/40 p-4 sm:p-6 relative">
                   <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-cyan-400 to-transparent opacity-50" />
                   
-                  <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-2">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
                     <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">Invite_Link</span>
                     <span className="text-xs text-slate-400">{memberCount} / {MAX_MEMBERS} SLOTS</span>
                   </div>
@@ -169,11 +169,11 @@ export default function CreateTeam() {
                       readOnly
                       value={inviteLink}
                       onClick={(e) => e.currentTarget.select()}
-                      className="w-full bg-transparent py-3 pl-3 text-sm text-slate-300 outline-none"
+                      className="min-w-0 flex-1 truncate bg-transparent py-3 pl-3 text-sm text-slate-300 outline-none"
                     />
                     <button
                       onClick={copyLink}
-                      className="flex h-full items-center border-l border-white/20 bg-white/5 px-4 text-xs font-bold uppercase text-white hover:bg-cyan-400/20 hover:text-cyan-300"
+                      className="flex shrink-0 items-center self-stretch border-l border-white/20 bg-white/5 px-4 text-xs font-bold uppercase text-white hover:bg-cyan-400/20 hover:text-cyan-300"
                     >
                       Copy
                     </button>
@@ -196,7 +196,7 @@ export default function CreateTeam() {
                 </div>
 
                 {/* Members Panel */}
-                <div className="border border-white/20 bg-black/40 p-6 relative">
+                <div className="border border-white/20 bg-black/40 p-4 sm:p-6 relative">
                    <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-cyan-400 to-transparent opacity-50" />
                    <div className="mb-4 border-b border-white/10 pb-2">
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Crew_Manifest</span>

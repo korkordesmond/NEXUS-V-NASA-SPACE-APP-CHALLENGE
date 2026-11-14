@@ -54,7 +54,7 @@ export default function Landing() {
   const prevStep = () => setActive((i) => (i - 1 + STEPS.length) % STEPS.length);
 
   return (
-    <div className="relative flex h-dvh flex-col overflow-hidden bg-[#05070a] text-slate-100 selection:bg-cyan-400/30" style={{ fontFamily: MONO }}>
+    <div className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#05070a] text-slate-100 selection:bg-cyan-400/30" style={{ fontFamily: MONO }}>
       
       {/* Pixel Grid Background */}
       <div 
@@ -67,39 +67,39 @@ export default function Landing() {
         }}
       />
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col p-4 sm:p-8">
+      <div className="relative z-10 flex flex-1 flex-col p-4 sm:p-8">
         
         {/* Header */}
-        <header className="flex shrink-0 items-center justify-between border-b border-white/10 pb-4">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 pb-4">
           <h1 className="text-xl font-bold tracking-widest text-white uppercase" style={{ fontFamily: MONO }}>
             Nexus<span className="text-cyan-400">V</span>
           </h1>
 
-          <div className="flex items-center gap-2 border border-white/20 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-widest text-slate-300">
+          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap border border-white/20 bg-white/5 px-2 py-1.5 text-[10px] uppercase tracking-widest text-slate-300 sm:px-3 sm:text-xs">
             <span className="size-2 animate-pulse bg-cyan-400" />
             Multiplayer_Online
           </div>
         </header>
 
         {/* Main Content */}
-        <section className="flex flex-1 flex-col justify-center py-8">
+        <section className="flex flex-1 flex-col justify-center py-6 sm:py-8">
           <div 
             key={active}
             className="mx-auto flex w-full max-w-5xl animate-slide-in flex-col gap-6 lg:grid lg:grid-cols-[1fr_2fr] lg:items-stretch"
           >
             {/* Left Side: Title & Navigation */}
-            <div className="flex flex-col justify-between border border-white/20 bg-black/40 p-8">
+            <div className="flex flex-col justify-between border border-white/20 bg-black/40 p-5 sm:p-8">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-cyan-500 mb-2">
                   Phase 0{active + 1}
                 </p>
-                <h2 className="text-5xl font-semibold tracking-tight text-white sm:text-6xl" style={{ fontFamily: SERIF }}>
+                <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl" style={{ fontFamily: SERIF }}>
                   {step.title}
                 </h2>
               </div>
 
               {/* Chevron-only Navigation */}
-              <div className="mt-12 flex items-center gap-4">
+              <div className="mt-8 flex items-center gap-4 sm:mt-12">
                 <button 
                   onClick={prevStep}
                   className="flex size-12 items-center justify-center border border-white/20 bg-white/5 text-slate-400 transition hover:border-cyan-400/50 hover:bg-cyan-400/10 hover:text-cyan-300"
@@ -116,7 +116,7 @@ export default function Landing() {
             </div>
 
             {/* Right Side: Description Panel */}
-            <div className="relative flex min-h-[16rem] flex-col justify-center border border-white/20 bg-white/[0.02] p-8 lg:p-12">
+            <div className="relative flex min-h-[10rem] flex-col justify-center border border-white/20 bg-white/[0.02] p-5 sm:min-h-[16rem] sm:p-8 lg:p-12">
               {/* Corner Brackets */}
               <div className="absolute -left-[1px] -top-[1px] size-4 border-l-2 border-t-2 border-cyan-400" />
               <div className="absolute -right-[1px] -top-[1px] size-4 border-r-2 border-t-2 border-cyan-400" />
@@ -149,7 +149,7 @@ export default function Landing() {
           {/* Chevron-only Navigation for Link */}
           <Link
             to="/team"
-            className="group flex items-center justify-between border border-cyan-400/50 bg-cyan-400/10 px-6 py-4 text-sm font-bold uppercase tracking-[0.18em] text-cyan-300 transition hover:bg-cyan-400/20"
+            className="group flex w-full items-center justify-between border border-cyan-400/50 bg-cyan-400/10 px-4 py-3 sm:w-auto sm:px-6 sm:py-4 text-sm font-bold uppercase tracking-[0.18em] text-cyan-300 transition hover:bg-cyan-400/20"
           >
             Initialize Team
             <span className="ml-4 flex size-8 items-center justify-center bg-cyan-400 text-[#05070a] transition-transform group-hover:translate-x-1">
