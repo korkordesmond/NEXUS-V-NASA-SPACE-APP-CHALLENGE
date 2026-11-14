@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useMission } from "../state/MissionContext";
 import { computeResources, totalCost } from "../lib/resources";
 import { sectionsFor } from "../data/mission";
-import { MONO, SANS, SERIF } from "../styles/ui";
 import { PlanetBody, PLANET_RADIUS_KM } from "../components/PlanetBody";
 import CraftView from "../components/CraftView";
 import {
@@ -15,8 +14,11 @@ import {
   type FlightResult,
 } from "../data/events";
 
+const SERIF = '"Source Serif 4", "Iowan Old Style", Charter, Georgia, serif';
+const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
+
 const eyebrow =
-  "text-[10px] font-medium uppercase tracking-[0.28em] text-cyan-300/80";
+  "text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-400";
 
 type Feed = "earth" | "forward" | "craft" | "system";
 
@@ -424,17 +426,7 @@ function msToMet(plan: Plan, ms: number): number {
   return seg.metStart + frac * seg.secs;
 }
 
-/* ─────────── Score model ───────────
- * Real-world consequence mapping:
- *  - Quality drives the base reward (good >> ok >> bad).
- *  - Every dollar spent is a real cost; weigh it against the science preserved.
- *  - Health lost is damage that must be repaired; weigh as a penalty.
- *  - Data lost is lost science; weigh as a penalty.
- *  - Light-time exposure: decisions made farther from Earth (longer delay)
- *    are intrinsically more valuable when correct and more costly when wrong,
- *    because the operator had less situational awareness.
- *  - Any unconsumed decision (timer expired) is a passive loss.
- */
+/* ─────────── Score model ─────────── */
 function scoreChoice(
   c: Choice,
   delaySec: number,
@@ -448,11 +440,9 @@ function scoreChoice(
   const dataPenalty = (c.effect.dataLoss ?? 0) * 0.7;
   const dataBonus = Math.max(0, -(c.effect.dataLoss ?? 0)) * 0.5;
 
-  // Light-time exposure: reward good decisions harder when comms are slow
-  const exposure = clamp(delaySec / 1800, 0, 1); // full weight at 30 min delay
+  const exposure = clamp(delaySec / 1800, 0, 1); 
   const exposureFactor = 1 + exposure * 0.4;
 
-  // Bonus for finishing healthy and preserving science
   const integrity =
     clamp(remainingAfter.health / 100) * 20 +
     clamp(1 - remainingAfter.dataLoss / 100) * 15;
@@ -494,7 +484,7 @@ const warpFmt = new Intl.NumberFormat("en", {
 });
 const fmtPts = (n: number) => `${n > 0 ? "+" : ""}${n.toLocaleString()}`;
 
-/* ─────────── Draggable Wrapper ─────────── */
+/* ─────────── Draggable Wrapper (Sharp version) ─────────── */
 const CANVAS_INSETS = { top: 16, right: 16, bottom: 176, left: 16 };
 const PANEL_CHROME = 100;
 
@@ -586,7 +576,6 @@ function Draggable({
     ro.observe(el);
     ro.observe(parent);
     return () => ro.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onHeaderDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -638,10 +627,10 @@ function Draggable({
       className="absolute left-0 top-0 flex w-60 flex-col will-change-transform"
     >
       <div
-        className={`flex flex-col rounded-2xl border p-4 shadow-2xl backdrop-blur-2xl transition-[border-color,background-color,box-shadow] duration-300 ${
+        className={`flex flex-col border p-4 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${
           active
-            ? "border-cyan-400/60 bg-[#0b0f19]/95 ring-2 ring-cyan-400/20 shadow-[0_0_30px_rgba(34,211,238,0.15)]"
-            : "border-white/15 bg-[#0b0f19]/90 ring-1 ring-white/5 shadow-black/60"
+            ? "border-cyan-400/60 bg-[#05070a]/95 shadow-[0_0_20px_rgba(34,211,238,0.15)]"
+            : "border-white/20 bg-[#05070a]/90"
         }`}
       >
         <div
@@ -653,7 +642,7 @@ function Draggable({
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
         >
-          <h2 className={eyebrow} style={{ fontFamily: SANS }}>
+          <h2 className={eyebrow} style={{ fontFamily: MONO }}>
             {title}
           </h2>
           <button
@@ -661,7 +650,7 @@ function Draggable({
             aria-label={isCollapsed ? `Expand ${title}` : `Minimize ${title}`}
             aria-expanded={!isCollapsed}
             onClick={onToggleCollapse}
-            className="grid size-6 cursor-pointer place-items-center rounded-md text-slate-400 transition-colors hover:bg-white/10 hover:text-white focus:outline-none"
+            className="grid size-6 cursor-pointer place-items-center text-slate-400 transition-colors hover:bg-white/10 hover:text-white focus:outline-none"
           >
             <svg
               viewBox="0 0 24 24"
@@ -672,11 +661,7 @@ function Draggable({
                 isCollapsed ? "rotate-180" : ""
               }`}
             >
-              <path
-                d="M6 9l6 6 6-6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M6 9l6 6 6-6" strokeLinecap="square" strokeLinejoin="miter" />
             </svg>
           </button>
         </div>
@@ -712,7 +697,7 @@ function FeedFinish({ rec = true }: { rec?: boolean }) {
           className="pointer-events-none absolute bottom-6 left-6 flex items-center gap-1.5 text-[10px] tracking-widest text-rose-300/90"
           style={{ fontFamily: MONO }}
         >
-          <span className="size-2 animate-pulse rounded-full bg-rose-500" />
+          <span className="size-2 animate-pulse bg-rose-500" />
           REC
         </div>
       )}
@@ -1075,7 +1060,7 @@ function EarthFeed({
                   opacity: mastOp,
                 }}
               >
-                <span className="absolute -left-[2px] -top-1 size-2 animate-pulse rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]" />
+                <span className="absolute -left-[2px] -top-1 size-2 animate-pulse bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]" />
                 <span
                   className="absolute -left-1 top-2 size-3 rounded-full bg-amber-200/90 blur-[2px]"
                   style={{ opacity: 1 - sky * 0.7 }}
@@ -1268,7 +1253,7 @@ function EarthFeed({
           className="pointer-events-none absolute bottom-12 left-6 text-[10px] leading-relaxed tracking-widest text-slate-200/90"
           style={{ fontFamily: MONO }}
         >
-          <div className="text-cyan-300/90">CAM 01 · LAUNCH PAD</div>
+          <div className="text-cyan-300/90">CAM_01 · LAUNCH_PAD</div>
           <div>ALT {alt < 10 ? alt.toFixed(2) : alt.toFixed(1)} KM</div>
           <div>RANGE {range < 10 ? range.toFixed(2) : range.toFixed(1)} KM</div>
           <div>VEL {Math.round(speedKms * 1000).toLocaleString()} M/S</div>
@@ -1293,12 +1278,12 @@ function LaunchButton({
       type="button"
       onClick={onLaunch}
       disabled={!ready}
-      className={`inline-flex h-11 items-center justify-center rounded-xl px-8 text-sm font-semibold uppercase tracking-[0.18em] transition-all duration-200 ${
+      className={`inline-flex h-11 items-center justify-center px-8 text-sm font-bold uppercase tracking-[0.18em] transition-all duration-200 ${
         ready
-          ? "bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.35)] hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] active:scale-95"
-          : "cursor-not-allowed bg-emerald-500/20 text-emerald-200/60"
+          ? "border border-emerald-500 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
+          : "border border-emerald-500/20 bg-transparent text-emerald-500/50 cursor-not-allowed"
       }`}
-      style={{ fontFamily: SANS }}
+      style={{ fontFamily: MONO }}
     >
       {phase === "launched"
         ? "Launched"
@@ -1340,7 +1325,6 @@ export default function Launch() {
   const debriefStarted = useRef(false);
   const finishTimeout = useRef<number | null>(null);
 
-  // Per-card countdown. On expiry, the card is dismissed with no decision.
   const [cardMsLeft, setCardMsLeft] = useState<number>(DEBRIEF_CARD_MS);
   const cardDeadline = useRef<number | null>(null);
   const cardTickId = useRef<number | null>(null);
@@ -1502,7 +1486,6 @@ export default function Launch() {
       1000,
     );
     return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countdown]);
 
   // ── Simulation clock (does NOT gate on fuelEmpty; only stops on end-states) ──
@@ -1551,7 +1534,6 @@ export default function Launch() {
         decisions: finalDecisions,
         eventsHit: finalDecisions.length,
         launchReliability: reliability,
-        // Extended result fields — see note below
         score: finalScore,
         scoreLog: finalLog,
       } as FlightResult,
@@ -1596,7 +1578,6 @@ export default function Launch() {
     resolvedForIndex.current = null;
     setDebriefQueue(reached);
     setDebriefIndex(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flightOutcome]);
 
   // ── Card countdown ──
@@ -1635,7 +1616,6 @@ export default function Launch() {
         cardTickId.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debriefIndex, debriefQueue.length]);
 
   // ── Record a choice ──
@@ -1786,11 +1766,11 @@ export default function Launch() {
         : "Flyby Complete";
   const stage =
     failure === "launch"
-      ? "LAUNCH FAILURE"
+      ? "LAUNCH_FAILURE"
       : failure === "health"
-        ? "SPACECRAFT LOST"
+        ? "SPACECRAFT_LOST"
         : fuelEmpty
-          ? "SIGNAL LOST / OUT OF FUEL"
+          ? "SIGNAL_LOST_/_OUT_OF_FUEL"
           : countdown !== null
             ? `Terminal Count · T-${countdown}`
             : !isLaunched
@@ -1857,7 +1837,6 @@ export default function Launch() {
     polar(t.ship.r, t.ship.th),
   ];
 
-  // Live telemetry — recomputes on every render, which is every sim tick.
   const rows: [string, string][] = [
     ["MET", fmtMET(t.met)],
     [`Speed (rel. ${t.frame})`, `${t.speed.toFixed(t.speed < 10 ? 3 : 2)} km/s`],
@@ -1888,7 +1867,6 @@ export default function Launch() {
     ["Score", `${score > 0 ? "+" : ""}${score}`],
   ];
 
-  // Bottom-bar quick strip — a subset that visibly ticks
   const quickStrip: [string, string][] = [
     ["MET", fmtMET(t.met)],
     [`v ${t.speed.toFixed(2)}`, `${t.frame} frame`],
@@ -1908,7 +1886,7 @@ export default function Launch() {
       {/* ─────────── Center Canvas ─────────── */}
       <div
         ref={canvasRef}
-        className={`absolute inset-4 bottom-44 z-0 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[inset_0_0_100px_rgba(0,0,0,1)] ${
+        className={`absolute inset-4 bottom-44 z-0 overflow-hidden border border-white/20 bg-black shadow-2xl ${
           isDraggingCamera.current ? "cursor-grabbing" : "cursor-crosshair"
         }`}
       >
@@ -1970,7 +1948,7 @@ export default function Launch() {
             </div>
 
             <div className="pointer-events-none absolute inset-0 flex flex-col justify-end">
-              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#05070d] via-[#05070d]/90 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#05070a] via-[#05070a]/90 to-transparent" />
               <div className="absolute bottom-0 left-1/2 h-32 w-[120%] -translate-x-1/2 rounded-t-[100%] border-t-2 border-white/10 bg-[#0b0f19]" />
               {solar && (
                 <>
@@ -2157,49 +2135,30 @@ export default function Launch() {
 
         {/* Overlay UI */}
         <div className="pointer-events-none absolute left-6 top-6 z-10 flex flex-wrap items-center gap-2">
-          <span
-            className="rounded bg-black/60 px-3 py-1 text-xs font-medium tracking-widest text-white backdrop-blur-md"
-            style={{ fontFamily: MONO }}
-          >
+          <span className="border border-white/20 bg-black/60 px-3 py-1 text-xs font-bold tracking-widest text-cyan-300" style={{ fontFamily: MONO }}>
             {activeFeed === "earth"
-              ? "EARTH CAMERA"
+              ? "EARTH_CAM"
               : activeFeed === "forward"
-                ? "FORWARD VIEW"
+                ? "FWD_VIEW"
                 : activeFeed === "craft"
-                  ? "CHASE CAM"
-                  : "HELIOCENTRIC VIEW"}
+                  ? "CHASE_CAM"
+                  : "HELIO_VIEW"}
           </span>
           {isLaunched && (
             <>
-              <span
-                className="flex items-center gap-1.5 rounded bg-amber-500/20 px-2 py-1 text-[10px] font-medium text-amber-300 backdrop-blur-md"
-                style={{ fontFamily: MONO }}
-              >
-                One-way light time: {fmtDelay(t.delaySec)}
+              <span className="flex items-center gap-1.5 border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-300" style={{ fontFamily: MONO }}>
+                DELAY: {fmtDelay(t.delaySec)}
               </span>
-              <span
-                className="rounded bg-white/10 px-2 py-1 text-[10px] font-medium text-slate-300 backdrop-blur-md"
-                style={{ fontFamily: MONO }}
-              >
-                Time warp ×{warpFmt.format(t.seg.warp)}
+              <span className="border border-white/20 bg-black/60 px-2 py-1 text-[10px] font-bold text-slate-300" style={{ fontFamily: MONO }}>
+                WARP: ×{warpFmt.format(t.seg.warp)}
               </span>
               {!isDebriefing && queue.current.length > 0 && (
-                <span
-                  className="rounded bg-slate-500/20 px-2 py-1 text-[10px] font-medium text-slate-300 backdrop-blur-md"
-                  style={{ fontFamily: MONO }}
-                >
-                  {queue.current.length} logged
+                <span className="border border-slate-500/30 bg-slate-500/10 px-2 py-1 text-[10px] font-bold text-slate-300" style={{ fontFamily: MONO }}>
+                  LOGGED: {queue.current.length}
                 </span>
               )}
-              <span
-                className={`rounded px-2 py-1 text-[10px] font-medium backdrop-blur-md ${
-                  score >= 0
-                    ? "bg-emerald-500/20 text-emerald-300"
-                    : "bg-rose-500/20 text-rose-300"
-                }`}
-                style={{ fontFamily: MONO }}
-              >
-                Score {score > 0 ? "+" : ""}{score}
+              <span className={`border px-2 py-1 text-[10px] font-bold ${score >= 0 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-rose-500/30 bg-rose-500/10 text-rose-300"}`} style={{ fontFamily: MONO }}>
+                SCORE: {score > 0 ? "+" : ""}{score}
               </span>
             </>
           )}
@@ -2207,44 +2166,38 @@ export default function Launch() {
 
         {failure && (
           <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-rose-950/40">
-            <span
-              className="rounded-xl border border-rose-500/40 bg-black/70 px-6 py-3 text-2xl uppercase tracking-[0.2em] text-rose-300"
-              style={{ fontFamily: MONO }}
-            >
-              {failure === "launch" ? "Launch failure" : "Spacecraft lost"}
+            <span className="border border-rose-500/50 bg-black/80 px-6 py-3 text-2xl uppercase tracking-[0.2em] text-rose-300" style={{ fontFamily: MONO }}>
+              {failure === "launch" ? "LAUNCH_FAILURE" : "SPACECRAFT_LOST"}
             </span>
           </div>
         )}
 
         {countdown !== null && (
           <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
-            <span
-              className="text-7xl tabular-nums text-white/90"
-              style={{ fontFamily: MONO }}
-            >
+            <span className="text-7xl tabular-nums text-white/90" style={{ fontFamily: MONO }}>
               T-{countdown}
             </span>
           </div>
         )}
 
-        <div className="absolute bottom-6 right-6 z-10 flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/60 p-1.5 backdrop-blur-md">
+        <div className="absolute bottom-6 right-6 z-10 flex flex-col items-center gap-2 border border-white/20 bg-black/60 p-1.5 backdrop-blur-md">
           <button
             onClick={() => setZoom((z) => Math.min(5, z + 0.2))}
-            className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white"
+            className="grid size-8 place-items-center text-slate-400 hover:bg-white/10 hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4">
-              <path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 5v14M5 12h14" strokeLinecap="square" strokeLinejoin="miter" />
             </svg>
           </button>
-          <div className="text-[10px] font-medium text-slate-500" style={{ fontFamily: MONO }}>
+          <div className="text-[10px] font-bold text-slate-500" style={{ fontFamily: MONO }}>
             {Math.round(zoom * 100)}%
           </div>
           <button
             onClick={() => setZoom((z) => Math.max(0.2, z - 0.2))}
-            className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white"
+            className="grid size-8 place-items-center text-slate-400 hover:bg-white/10 hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4">
-              <path d="M5 12h14" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M5 12h14" strokeLinecap="square" strokeLinejoin="miter" />
             </svg>
           </button>
         </div>
@@ -2272,22 +2225,22 @@ export default function Launch() {
             <button
               key={key}
               onClick={() => setActiveFeed(key)}
-              className={`group flex items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
+              className={`group flex items-center justify-between border px-4 py-3 text-left transition ${
                 activeFeed === key
-                  ? "border-cyan-400/50 bg-cyan-400/10"
-                  : "border-white/5 bg-white/[0.02] hover:bg-white/[0.06]"
+                  ? "border-cyan-400/80 bg-cyan-400/10"
+                  : "border-white/10 bg-black/40 hover:border-white/30 hover:bg-white/[0.04]"
               }`}
             >
               <div className="pointer-events-none flex flex-col">
-                <span className="text-sm font-semibold text-white" style={{ fontFamily: SANS }}>
+                <span className="text-sm font-bold text-white" style={{ fontFamily: MONO }}>
                   {name}
                 </span>
-                <span className="text-[10px] text-slate-400" style={{ fontFamily: SANS }}>
+                <span className="text-[10px] text-slate-400" style={{ fontFamily: MONO }}>
                   {sub}
                 </span>
               </div>
               <div
-                className={`pointer-events-none size-2 rounded-full transition-colors ${
+                className={`pointer-events-none size-2 transition-colors ${
                   activeFeed === key
                     ? "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,1)]"
                     : "bg-white/10 group-hover:bg-white/20"
@@ -2319,16 +2272,16 @@ export default function Launch() {
             return (
               <div key={r.key}>
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-300" style={{ fontFamily: SANS }}>
+                  <span className="text-xs font-bold text-slate-300" style={{ fontFamily: MONO }}>
                     {r.label}
                   </span>
                   <span className="text-xs tabular-nums text-slate-400" style={{ fontFamily: MONO }}>
                     {Math.floor(r.used).toLocaleString()}
                   </span>
                 </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/50">
+                <div className="mt-2 h-1.5 overflow-hidden bg-black/60">
                   <div
-                    className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+                    className={`h-full transition-all duration-300 ${barColor}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -2338,16 +2291,16 @@ export default function Launch() {
 
           <div>
             <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs font-semibold text-slate-300" style={{ fontFamily: SANS }}>
+              <span className="text-xs font-bold text-slate-300" style={{ fontFamily: MONO }}>
                 Spacecraft health
               </span>
               <span className="text-xs tabular-nums text-slate-400" style={{ fontFamily: MONO }}>
                 {Math.round(health)}%
               </span>
             </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/50">
+            <div className="mt-2 h-1.5 overflow-hidden bg-black/60">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
+                className={`h-full transition-all duration-300 ${
                   health < 30 ? "bg-rose-500" : health < 60 ? "bg-amber-400" : "bg-cyan-400"
                 }`}
                 style={{ width: `${health}%` }}
@@ -2357,7 +2310,7 @@ export default function Launch() {
 
           <div className="flex flex-col gap-1 border-t border-white/10 pt-3">
             {loadout.map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3 text-[10px] text-slate-400" style={{ fontFamily: SANS }}>
+              <div key={k} className="flex justify-between gap-3 text-[10px] text-slate-400" style={{ fontFamily: MONO }}>
                 <span>{k}</span>
                 <span className="truncate text-right text-slate-300">{v}</span>
               </div>
@@ -2370,7 +2323,7 @@ export default function Launch() {
                 <div
                   key={k}
                   className="flex justify-between text-[10px] text-slate-400"
-                  style={{ fontFamily: SANS }}
+                  style={{ fontFamily: MONO }}
                 >
                   <span>{k}</span>
                   <span className="tabular-nums" style={{ fontFamily: MONO }}>
@@ -2383,11 +2336,11 @@ export default function Launch() {
 
           {isLaunched && scoreLog.length > 0 && (
             <div className="mt-2 flex flex-col gap-1 border-t border-white/10 pt-3">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500" style={{ fontFamily: SANS }}>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500" style={{ fontFamily: MONO }}>
                 Decision log
               </span>
               {scoreLog.map((e, i) => (
-                <div key={i} className="flex justify-between gap-2 text-[10px]" style={{ fontFamily: SANS }}>
+                <div key={i} className="flex justify-between gap-2 text-[10px]" style={{ fontFamily: MONO }}>
                   <span className="truncate text-slate-400">{e.title}</span>
                   <span
                     className={`tabular-nums ${e.delta >= 0 ? "text-emerald-300" : "text-rose-300"}`}
@@ -2403,11 +2356,11 @@ export default function Launch() {
       </Draggable>
 
       {/* ─────────── Bottom panel ─────────── */}
-      <div className="absolute inset-x-6 bottom-4 z-20 flex shrink-0 flex-col rounded-2xl border border-white/15 bg-[#0b0f19]/90 p-4 backdrop-blur-2xl shadow-2xl shadow-black/60 ring-1 ring-white/5">
+      <div className="absolute inset-x-6 bottom-4 z-20 flex shrink-0 flex-col border border-white/20 bg-[#05070a]/95 p-4 shadow-2xl">
         <div className="flex items-center justify-between pb-3">
           <div className="flex items-baseline gap-3">
-            <span className={eyebrow} style={{ fontFamily: SANS }}>
-              Mission Elapsed Time
+            <span className={eyebrow} style={{ fontFamily: MONO }}>
+              MET
             </span>
             <span className="text-xl tabular-nums text-white" style={{ fontFamily: MONO }}>
               {isLaunched
@@ -2418,21 +2371,21 @@ export default function Launch() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500" style={{ fontFamily: SANS }}>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500" style={{ fontFamily: MONO }}>
               Status
             </span>
             <span
-              className={`rounded-full border px-3 py-1 text-xs font-medium ${
+              className={`border px-3 py-1 text-xs font-bold uppercase ${
                 fuelEmpty || failure
                   ? "border-rose-500/30 bg-rose-500/10 text-rose-300"
                   : "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
               }`}
-              style={{ fontFamily: SANS }}
+              style={{ fontFamily: MONO }}
             >
               {stage}
             </span>
             <span
-              className={`rounded-full border px-3 py-1 text-xs font-medium ${
+              className={`border px-3 py-1 text-xs font-bold ${
                 score >= 0
                   ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200"
                   : "border-rose-500/30 bg-rose-500/10 text-rose-300"
@@ -2445,9 +2398,9 @@ export default function Launch() {
           </div>
         </div>
 
-        <div className="h-2 w-full overflow-hidden rounded-full border border-white/10 bg-black/50 shadow-inner">
+        <div className="h-2 w-full overflow-hidden border border-white/10 bg-black/50">
           <div
-            className={`h-full rounded-full transition-all duration-75 ease-linear ${
+            className={`h-full transition-all duration-75 ease-linear ${
               fuelEmpty || failure
                 ? "bg-rose-500"
                 : "bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)]"
@@ -2463,7 +2416,7 @@ export default function Launch() {
               <div
                 key={k}
                 className="flex items-center justify-between gap-2 text-[10px] text-slate-400"
-                style={{ fontFamily: SANS }}
+                style={{ fontFamily: MONO }}
               >
                 <span>{k}</span>
                 <span className="tabular-nums text-slate-200" style={{ fontFamily: MONO }}>
@@ -2475,32 +2428,32 @@ export default function Launch() {
         )}
 
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
-          <p className="text-xs text-slate-400" style={{ fontFamily: SANS }}>
+          <p className="text-xs text-slate-400 uppercase tracking-widest" style={{ fontFamily: MONO }}>
             {failure === "launch"
-              ? "The launch vehicle failed during ascent. Loading feedback..."
+              ? "LAUNCH FAILURE. LOADING FEEDBACK..."
               : failure === "health"
-                ? "The spacecraft was lost to accumulated damage. Loading feedback..."
+                ? "SPACECRAFT LOST. LOADING FEEDBACK..."
                 : fuelEmpty
-                  ? "Critical failure. Propellant exhausted before the burn completed."
+                  ? "CRITICAL FAILURE. PROPELLANT EXHAUSTED."
                   : countdown !== null
-                    ? "Terminal count in progress."
+                    ? "TERMINAL COUNT IN PROGRESS."
                     : !isLaunched
-                      ? "Awaiting launch command."
+                      ? "AWAITING LAUNCH COMMAND."
                       : isDebriefing
-                        ? "Post-flight review: resolving mission events."
+                        ? "POST-FLIGHT REVIEW: RESOLVING EVENTS."
                         : isDone
-                          ? "Mission complete. Loading feedback..."
+                          ? "MISSION COMPLETE. LOADING FEEDBACK..."
                           : isPaused
-                            ? "Simulation paused."
-                            : "Simulation running..."}
+                            ? "SIMULATION PAUSED."
+                            : "SIMULATION RUNNING..."}
           </p>
 
           <div className="flex items-center gap-3">
             {isLaunched && !isDone && !fuelEmpty && !failure && !activeEvent && (
               <button
                 onClick={() => setIsPaused((p) => !p)}
-                className="inline-flex h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 text-sm font-semibold tracking-wide text-white backdrop-blur-md transition hover:bg-white/10"
-                style={{ fontFamily: SANS }}
+                className="inline-flex h-11 items-center gap-2 border border-white/20 bg-black/40 px-6 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-white/10"
+                style={{ fontFamily: MONO }}
               >
                 {isPaused ? "Resume" : "Pause"}
               </button>
@@ -2526,14 +2479,14 @@ export default function Launch() {
         >
           <div
             key={debriefIndex}
-            className={`w-full max-w-lg rounded-2xl border bg-[#0b0f19]/95 p-6 shadow-2xl shadow-black/60 transition-colors ${
+            className={`w-full max-w-lg border bg-[#05070a]/95 p-6 shadow-2xl transition-colors ${
               cardUrgent ? "border-rose-500/60" : "border-amber-400/40"
             }`}
           >
             <div className="flex items-baseline justify-between gap-4">
               <p
-                className="text-[10px] font-medium uppercase tracking-[0.28em] text-amber-300/90"
-                style={{ fontFamily: SANS }}
+                className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-300/90"
+                style={{ fontFamily: MONO }}
               >
                 Post-flight review
               </p>
@@ -2552,7 +2505,7 @@ export default function Launch() {
               Logged event at {fmtMET(msToMet(plan, activeItem?.atMs ?? 0))}
             </p>
 
-            <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
+            <div className="mt-3 h-1 overflow-hidden bg-white/10">
               <div
                 className="h-full bg-amber-400/80 transition-[width] duration-300"
                 style={{
@@ -2560,7 +2513,7 @@ export default function Launch() {
                 }}
               />
             </div>
-            <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-white/10">
+            <div className="mt-1.5 h-0.5 overflow-hidden bg-white/10">
               <div
                 className={`h-full ${cardUrgent ? "bg-rose-500" : "bg-amber-300"}`}
                 style={{ width: `${cardPct * 100}%` }}
@@ -2570,7 +2523,7 @@ export default function Launch() {
             <h2 className="mt-4 text-2xl font-semibold tracking-tight text-white" style={{ fontFamily: SERIF }}>
               {activeEvent.title}
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-300" style={{ fontFamily: SANS }}>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300" style={{ fontFamily: MONO }}>
               {activeEvent.text}
             </p>
             {evSnap && evSnap.delaySec >= 1 && (
@@ -2589,16 +2542,14 @@ export default function Launch() {
                     onClick={() => choose(c)}
                     disabled={!affordable}
                     autoFocus={i === 0}
-                    className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400/60 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex items-start justify-between gap-4 border border-white/10 bg-black/40 px-4 py-3 text-left transition hover:border-cyan-400/50 hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400/60 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <span>
-                      <span className="block text-sm font-semibold text-white" style={{ fontFamily: SANS }}>
-                        <span className="mr-2 text-slate-500" style={{ fontFamily: MONO }}>
-                          {i + 1}
-                        </span>
+                      <span className="block text-sm font-bold text-white" style={{ fontFamily: MONO }}>
+                        <span className="mr-2 text-slate-500">[{i + 1}]</span>
                         {c.label}
                       </span>
-                      <span className="mt-0.5 block text-xs text-slate-400" style={{ fontFamily: SANS }}>
+                      <span className="mt-1 block text-xs text-slate-400" style={{ fontFamily: MONO }}>
                         {affordable ? c.detail : "Not enough reserve for this option."}
                       </span>
                     </span>
@@ -2610,9 +2561,9 @@ export default function Launch() {
               })}
             </div>
 
-            <div className="mt-3 flex items-center justify-between">
-              <p className="text-[11px] text-slate-500" style={{ fontFamily: MONO }}>
-                Let the timer run out to skip this decision.
+            <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
+              <p className="text-[11px] text-slate-500 uppercase tracking-wider" style={{ fontFamily: MONO }}>
+                Let the timer run out to skip.
               </p>
               <p className="text-[11px] text-slate-500" style={{ fontFamily: MONO }}>
                 Reserve ${Math.round(reserve).toLocaleString()}M · Score{" "}

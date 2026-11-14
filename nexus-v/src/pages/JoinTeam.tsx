@@ -1,62 +1,25 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import MemberSlots from "../components/MemberSlots";
 import { MAX_MEMBERS, getMe, joinTeam, useTeam } from "../lib/teamStore";
 
+const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
 const SERIF = '"Source Serif 4", "Iowan Old Style", Charter, Georgia, serif';
-const SANS = "Inter, ui-sans-serif, system-ui, sans-serif";
 
-const headingClass =
-  "bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-transparent sm:text-5xl";
-
-function ChevronLeftIcon({ className = "" }: { className?: string }) {
+function ChevronLeft({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}
-      strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="m15 18-6-6 6-6" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="square" strokeLinejoin="miter" className={className} aria-hidden="true">
+      <path d="M15 18l-6-6 6-6" />
     </svg>
   );
 }
 
-function ChevronRightIcon({ className = "" }: { className?: string }) {
+function ChevronRight({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}
-      strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="m9 18 6-6-6-6" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="square" strokeLinejoin="miter" className={className} aria-hidden="true">
+      <path d="M9 18l6-6-6-6" />
     </svg>
-  );
-}
-
-function LockIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
-      strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <rect x="4" y="10" width="16" height="10" rx="2" />
-      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
-
-function WarnIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
-      strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
-      <path d="M12 9v4" />
-      <path d="M12 17h.01" />
-    </svg>
-  );
-}
-
-function Glass({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div
-      className={`relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.03] shadow-[0_8px_40px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-3xl ${className}`}
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-      {children}
-    </div>
   );
 }
 
@@ -84,30 +47,21 @@ export default function JoinTeam() {
     if (!code || isJoining) return;
     
     if (playerName.trim().length < 2) {
-      setError("At least 2 characters.");
+      setError("ERR: MIN 2 CHARS.");
       return;
     }
 
     setError(null);
     setIsJoining(true);
-    
     try {
       const result = await joinTeam(code, playerName);
-      
       if (!result.ok) {
-        setError(
-          result.reason === "full"
-            ? "Team is full."
-            : result.reason === "started"
-            ? "Mission already started."
-            : "Team not found."
-        );
+        setError(result.reason === "full" ? "ERR: CREW FULL." : result.reason === "started" ? "ERR: MISSION STARTED." : "ERR: TEAM NOT FOUND.");
         return;
       }
-      
       setMeId(result.memberId);
     } catch (err) {
-      setError("Failed to connect to the server.");
+      setError("ERR: CONNECTION FAILED.");
     } finally {
       setIsJoining(false);
     }
@@ -116,217 +70,141 @@ export default function JoinTeam() {
   const isFull = !!team && team.members.length >= MAX_MEMBERS;
 
   const status = !team
-    ? { label: "Invalid Link", tone: "rose" as const }
+    ? { label: "INVALID_LINK", tone: "text-rose-400 border-rose-400/50" }
     : joined
-    ? { label: "In Lobby", tone: "emerald" as const }
+    ? { label: "IN_LOBBY", tone: "text-emerald-400 border-emerald-400/50" }
     : team.started
-    ? { label: "Launched", tone: "amber" as const }
+    ? { label: "LAUNCHED", tone: "text-amber-400 border-amber-400/50" }
     : isFull
-    ? { label: "Crew Full", tone: "rose" as const }
-    : { label: "Recruiting", tone: "cyan" as const };
+    ? { label: "CREW_FULL", tone: "text-rose-400 border-rose-400/50" }
+    : { label: "RECRUITING", tone: "text-cyan-400 border-cyan-400/50" };
 
-  const toneClasses: Record<typeof status.tone, string> = {
-    rose: "border-rose-400/20 bg-rose-400/10 text-rose-300",
-    emerald: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-    amber: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-    cyan: "border-cyan-400/20 bg-cyan-400/10 text-cyan-300",
-  };
-  const dotClasses: Record<typeof status.tone, string> = {
-    rose: "bg-rose-400",
-    emerald: "bg-emerald-400",
-    amber: "bg-amber-400",
-    cyan: "bg-cyan-400",
-  };
+  const Shell = ({ children }: { children: React.ReactNode }) => (
+    <section className="relative flex h-dvh flex-col overflow-hidden bg-[#05070a] text-slate-100 selection:bg-cyan-400/30" style={{ fontFamily: MONO }}>
+      <div 
+        className="pointer-events-none absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: "linear-gradient(#22d3ee 1px, transparent 1px), linear-gradient(90deg, #22d3ee 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+          maskImage: "radial-gradient(ellipse at center, black 20%, transparent 80%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 20%, transparent 80%)"
+        }}
+      />
 
-  /* --------------------------- INVALID LINK ---------------------------- */
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col p-4 sm:p-8">
+        <header className="flex shrink-0 items-center justify-between border-b border-white/10 pb-4">
+          <button onClick={() => navigate("/")} className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-cyan-300">
+            <span className="flex size-8 items-center justify-center border border-white/20 bg-white/5 transition group-hover:border-cyan-400/50">
+              <ChevronLeft className="size-4" />
+            </span>
+            Exit
+          </button>
+
+          <div className={`flex items-center gap-2 border px-3 py-1.5 text-xs uppercase tracking-widest bg-white/5 ${status.tone}`}>
+            <span className="size-2 animate-pulse bg-current" />
+            {status.label}
+          </div>
+        </header>
+
+        <div className="flex flex-1 flex-col justify-center py-8">
+          <div className="animate-slide-in w-full max-w-2xl mx-auto">
+            {children}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
   if (!team) {
     return (
-      <Shell status={status} toneClasses={toneClasses} dotClasses={dotClasses}>
-        <div className="mx-auto max-w-md text-center animate-slide-in">
-          <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-3xl border border-rose-400/20 bg-rose-400/5 text-rose-300 backdrop-blur-md">
-            <WarnIcon className="size-10" />
-          </div>
-          <h2 className={headingClass} style={{ fontFamily: SERIF }}>
-            Team not found.
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-400" style={{ fontFamily: SERIF }}>
-            The invite link may be expired or invalid. Ask your captain for a new one.
-          </p>
-          <Link
-            to="/"
-            className="group mt-8 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-white/20 hover:bg-white/10 active:scale-[0.98]"
-            style={{ fontFamily: SANS }}
-          >
-            <ChevronLeftIcon className="size-4 transition-transform group-hover:-translate-x-0.5" />
-            Return Home
-          </Link>
+      <Shell>
+        <div className="text-center">
+          <h2 className="text-3xl font-semibold text-rose-400 sm:text-4xl" style={{ fontFamily: SERIF }}>Connection Lost.</h2>
+          <p className="mt-3 text-sm text-slate-400">The invite link is expired or invalid.</p>
         </div>
       </Shell>
     );
   }
 
-  /* --------------------------- LOCKED / FULL --------------------------- */
   if (team.started || isFull) {
-    const started = team.started;
     return (
-      <Shell status={status} toneClasses={toneClasses} dotClasses={dotClasses}>
-        <div className="mx-auto max-w-md text-center animate-slide-in">
-          <div
-            className={`mx-auto mb-6 flex size-20 items-center justify-center rounded-3xl border backdrop-blur-md ${
-              started
-                ? "border-amber-400/20 bg-amber-400/5 text-amber-300"
-                : "border-rose-400/20 bg-rose-400/5 text-rose-300"
-            }`}
-          >
-            {started ? <WarnIcon className="size-10" /> : <LockIcon className="size-10" />}
-          </div>
-          <h2 className={headingClass} style={{ fontFamily: SERIF }}>
-            {started ? "Already launched." : "Crew is full."}
+      <Shell>
+        <div className="text-center">
+          <h2 className="text-3xl font-semibold text-amber-400 sm:text-4xl" style={{ fontFamily: SERIF }}>
+            {team.started ? "Already Launched." : "Crew Full."}
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-400" style={{ fontFamily: SERIF }}>
-            {started ? `${team.name} has already started their mission.` : `${team.name} has reached the maximum capacity of ${MAX_MEMBERS} players.`}
+          <p className="mt-3 text-sm text-slate-400">
+            {team.started ? `${team.name} is already in flight.` : `${team.name} has no open slots.`}
           </p>
         </div>
       </Shell>
     );
   }
 
-  /* --------------------- LOBBY + SLIDING BOTTOM CARD ------------------- */
   return (
-    <Shell status={status} toneClasses={toneClasses} dotClasses={dotClasses}>
-      <div className="pb-32 sm:pb-36 animate-slide-in">
-        <h2 className={headingClass} style={{ fontFamily: SERIF }}>
-          {joined ? (
-            "You're in."
-          ) : (
-            <>Join <span className="text-cyan-300">{team.name}</span></>
-          )}
-        </h2>
-        <p className="mt-3 text-base leading-relaxed text-slate-400 sm:text-lg" style={{ fontFamily: SERIF }}>
-          {joined
-            ? `Waiting for the captain to launch...`
-            : `${team.members.length} of ${MAX_MEMBERS} spots taken.`}
-        </p>
+    <Shell>
+      <div className="pb-32">
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl" style={{ fontFamily: SERIF }}>
+            Join <span className="text-cyan-300">{team.name}</span>
+          </h1>
+          <p className="mt-2 text-xs uppercase tracking-widest text-slate-400">
+            {memberCount(team.members.length)}
+          </p>
+        </div>
 
-        <div className="mt-8 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 backdrop-blur-md">
+        <div className="border border-white/20 bg-black/40 p-6 relative">
+          <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-cyan-400 to-transparent opacity-50" />
+          <div className="mb-4 border-b border-white/10 pb-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Crew_Manifest</span>
+          </div>
           <MemberSlots members={team.members} max={MAX_MEMBERS} meId={meId} />
         </div>
-        
+
         {joined && (
-          <div className="mt-8 flex items-center justify-center gap-3 text-sm text-slate-500 animate-pulse" style={{ fontFamily: SANS }}>
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-cyan-400" />
-            </span>
-            Waiting for launch command...
+          <div className="mt-8 flex items-center justify-center gap-2 text-xs text-cyan-400 uppercase tracking-widest">
+            <span className="size-2 animate-ping bg-cyan-400" />
+            Awaiting launch command
           </div>
         )}
       </div>
 
-      {/* === Sticky bottom card — slides away once joined === */}
+      {/* Sticky Bottom Input */}
       <div
-        className={`pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-6 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] sm:px-6 sm:pb-8 ${
-          joined ? "translate-y-[150%] opacity-0" : "translate-y-0 opacity-100"
+        className={`fixed inset-x-0 bottom-0 z-30 flex justify-center p-4 transition-all duration-500 ease-out ${
+          joined ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
         }`}
-        aria-hidden={joined}
       >
-        <div className="pointer-events-auto w-full max-w-2xl">
-          <Glass className="p-3 sm:p-4">
-            <form onSubmit={handleSubmit} noValidate style={{ fontFamily: SANS }}>
-              <div className="flex items-center gap-3">
-                <label htmlFor="player-name" className="sr-only">
-                  Your name
-                </label>
-                <input
-                  id="player-name"
-                  value={playerName}
-                  onChange={(e) => {
-                    setPlayerName(e.target.value);
-                    setError(null);
-                  }}
-                  placeholder="Enter your callsign..."
-                  maxLength={20}
-                  autoComplete="off"
-                  autoFocus
-                  disabled={isJoining}
-                  className={`flex-1 rounded-xl border bg-white/[0.03] px-5 py-4 text-base text-slate-100 placeholder-slate-500 outline-none transition-all duration-300 backdrop-blur-xl ${
-                    error
-                      ? "border-rose-400/60 ring-4 ring-rose-400/10"
-                      : "border-white/10 hover:border-white/20 focus:border-cyan-400/50 focus:bg-white/[0.06] focus:ring-4 focus:ring-cyan-400/10"
-                  }`}
-                />
-                <button
-                  type="submit"
-                  disabled={isJoining || playerName.trim().length < 2}
-                  className="group flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-b from-cyan-300 to-cyan-400 px-6 py-4 text-sm font-bold text-[#070912] shadow-lg shadow-cyan-500/20 transition-all hover:from-cyan-200 hover:to-cyan-300 hover:shadow-cyan-400/40 active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
-                >
-                  {isJoining ? "Joining..." : "Join Crew"}
-                  <ChevronRightIcon className={`size-4 transition-transform group-hover:translate-x-0.5 ${isJoining ? 'animate-pulse' : ''}`} />
-                </button>
-              </div>
-              <p className="mt-2 min-h-4 px-2 text-xs text-rose-300" role="alert">
-                {error}
-              </p>
-            </form>
-          </Glass>
+        <div className="w-full max-w-lg border border-white/20 bg-[#05070a]/90 p-2 shadow-2xl backdrop-blur-xl">
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="flex items-center bg-black/50 border border-white/20 focus-within:border-cyan-400/50 focus-within:ring-1 focus-within:ring-cyan-400/50 transition-all">
+              <input
+                value={playerName}
+                onChange={(e) => { setPlayerName(e.target.value.toUpperCase()); setError(null); }}
+                placeholder="ENTER CALLSIGN..."
+                maxLength={20}
+                autoComplete="off"
+                autoFocus
+                disabled={isJoining}
+                className="w-full bg-transparent py-4 pl-4 text-lg text-white placeholder-slate-600 outline-none"
+              />
+              <button
+                type="submit"
+                disabled={isJoining || playerName.trim().length < 2}
+                className="flex h-full items-center justify-center border-l border-white/20 bg-white/5 px-6 py-4 text-cyan-300 transition hover:bg-cyan-400/20 disabled:opacity-30 disabled:hover:bg-white/5"
+              >
+                <ChevronRight className={`size-6 ${isJoining ? 'animate-pulse' : ''}`} />
+              </button>
+            </div>
+            <div className="mt-1 px-2 text-xs text-rose-400 font-bold min-h-[1.25rem]">{error}</div>
+          </form>
         </div>
       </div>
     </Shell>
   );
 }
 
-/* ----------------------------- Layout shell ----------------------------- */
-
-function Shell({
-  children,
-  status,
-  toneClasses,
-  dotClasses,
-}: {
-  children: React.ReactNode;
-  status: { label: string; tone: "rose" | "emerald" | "amber" | "cyan" };
-  toneClasses: Record<string, string>;
-  dotClasses: Record<string, string>;
-}) {
-  return (
-    <div className="relative flex h-dvh flex-col overflow-hidden bg-[#070912] text-slate-100 selection:bg-cyan-400/30">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-32 -top-32 size-[40rem] rounded-full bg-indigo-500/20 blur-[140px]" />
-        <div className="absolute -bottom-40 -right-24 size-[38rem] rounded-full bg-cyan-400/15 blur-[140px]" />
-        <div className="absolute left-1/2 top-1/2 size-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-500/10 blur-[120px]" />
-      </div>
-
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
-        <div className="flex shrink-0 items-center justify-between px-6 py-6 sm:px-10">
-          <Link
-            to="/"
-            className="group flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white"
-            style={{ fontFamily: SANS }}
-          >
-            <span className="flex size-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition group-hover:border-white/20 group-hover:bg-white/10">
-              <ChevronLeftIcon className="size-4" />
-            </span>
-            Home
-          </Link>
-
-          <div
-            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur-md transition-colors ${toneClasses[status.tone]}`}
-            style={{ fontFamily: SANS }}
-          >
-            <span className="relative flex size-2">
-              <span className={`absolute inline-flex size-full animate-ping rounded-full opacity-75 ${dotClasses[status.tone]}`} />
-              <span className={`relative inline-flex size-2 rounded-full ${dotClasses[status.tone]}`} />
-            </span>
-            {status.label}
-          </div>
-        </div>
-
-        <div className="flex min-h-0 flex-1 items-start justify-center overflow-y-auto px-4 pb-6 pt-4 sm:px-6">
-          <Glass className="w-full max-w-3xl">
-            <div className="px-6 py-10 sm:px-10 sm:py-12">{children}</div>
-          </Glass>
-        </div>
-      </div>
-    </div>
-  );
+// Helper for text
+function memberCount(c: number) {
+  return `[ ${c} / 4 SLOTS OCCUPIED ]`;
 }
