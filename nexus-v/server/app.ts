@@ -26,13 +26,17 @@ export interface Team {
   started: boolean;
 }
 
-// In-memory database
+// In-memory database (cleared on every restart or redeploy)
 const teams = new Map<string, Team>();
+
+// Newer @types/express types route params as string | string[],
+// so read the team code through one helper that always returns a string.
+const codeOf = (req: Request): string => String(req.params.code).toUpperCase();
 
 // ==========================================
 // 1. Health Check Endpoint
 // ==========================================
-app.get('/api/health', (req: Request, res: Response) => {
+app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'success',
     message: 'Nexus-V Backend is healthy',
@@ -47,13 +51,13 @@ app.get('/api/health', (req: Request, res: Response) => {
 // ==========================================
 app.post('/api/teams', (req: Request, res: Response) => {
   const { name } = req.body;
-  
+
   if (!name || name.trim().length < 3) {
     return res.status(400).json({ error: 'Team name must be at least 3 characters.' });
   }
 
-  const code = crypto.randomBytes(3).toString('hex').toUpperCase(); 
-  
+  const code = crypto.randomBytes(3).toString('hex').toUpperCase();
+
   const captain: Member = {
     id: crypto.randomUUID(),
     name: 'Captain',
@@ -68,7 +72,7 @@ app.post('/api/teams', (req: Request, res: Response) => {
   };
 
   teams.set(code, newTeam);
-  
+
   res.status(201).json({ team: newTeam, memberId: captain.id });
 });
 
@@ -76,12 +80,12 @@ app.post('/api/teams', (req: Request, res: Response) => {
 // 3. Get Team (Used by polling)
 // ==========================================
 app.get('/api/teams/:code', (req: Request, res: Response) => {
-  const team = teams.get(req.params.code.toUpperCase());
-  
+  const team = teams.get(codeOf(req));
+
   if (!team) {
     return res.status(404).json({ error: 'Team not found' });
   }
-  
+
   res.json({ team });
 });
 
@@ -90,16 +94,16 @@ app.get('/api/teams/:code', (req: Request, res: Response) => {
 // ==========================================
 app.post('/api/teams/:code/join', (req: Request, res: Response) => {
   const { name } = req.body;
-  const team = teams.get(req.params.code.toUpperCase());
+  const team = teams.get(codeOf(req));
 
   if (!team) {
-    return res.status(404).json({ error: 'not-found' }); 
+    return res.status(404).json({ error: 'not-found' });
   }
   if (team.started) {
-    return res.status(403).json({ error: 'started' }); 
+    return res.status(403).json({ error: 'started' });
   }
   if (team.members.length >= MAX_MEMBERS) {
-    return res.status(400).json({ error: 'full' }); 
+    return res.status(400).json({ error: 'full' });
   }
 
   const newMember: Member = {
@@ -109,7 +113,7 @@ app.post('/api/teams/:code/join', (req: Request, res: Response) => {
   };
 
   team.members.push(newMember);
-  
+
   res.json({ team, memberId: newMember.id });
 });
 
@@ -117,7 +121,7 @@ app.post('/api/teams/:code/join', (req: Request, res: Response) => {
 // 5. Start the Team
 // ==========================================
 app.post('/api/teams/:code/start', (req: Request, res: Response) => {
-  const team = teams.get(req.params.code.toUpperCase());
+  const team = teams.get(codeOf(req));
 
   if (!team) {
     return res.status(404).json({ error: 'Team not found' });
