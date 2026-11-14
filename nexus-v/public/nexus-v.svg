@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">NexusV</title>
+  <desc id="desc">A futuristic NexusV emblem with a geometric N, orbital ring, star, and blue-to-cyan gradient.</desc>
+  <defs>
+    <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#176BFF"/>
+      <stop offset=".52" stop-color="#00B8F4"/>
+      <stop offset="1" stop-color="#36F0C2"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#C9D9F1"/>
+    </linearGradient>
+    <radialGradient id="space" cx="50%" cy="43%" r="68%">
+      <stop offset="0" stop-color="#07182D"/>
+      <stop offset="1" stop-color="#020711"/>
+    </radialGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <circle cx="512" cy="512" r="462" fill="url(#space)" stroke="url(#neon)" stroke-width="13"/>
+
+  <!-- Geometric N/V monogram -->
+  <path d="M320 620V306L548 487L548 584L399 466V620Z" fill="url(#mark)"/>
+  <path d="M592 306L704 230V526L592 584Z" fill="url(#neon)"/>
+  <path d="M592 632L704 574V748Z" fill="url(#mark)"/>
+  <path d="M320 650L399 626V690L320 736Z" fill="#087DEB"/>
+
+  <!-- Orbital sweep -->
+  <path d="M242 574C316 634 495 591 663 501C766 446 824 365 782 332C760 315 724 315 688 322"
+        fill="none" stroke="url(#neon)" stroke-width="28" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M242 574C316 634 495 591 663 501C766 446 824 365 782 332C760 315 724 315 688 322"
+        fill="none" stroke="url(#neon)" stroke-width="17" stroke-linecap="round"/>
+
+  <!-- Star and constellation points -->
+  <path d="M795 220L812 267L859 284L812 301L795 348L778 301L731 284L778 267Z" fill="#FFFFFF"/>
+  <circle cx="248" cy="320" r="5" fill="#FFFFFF"/>
+  <circle cx="208" cy="455" r="4" fill="#FFFFFF"/>
+  <circle cx="817" cy="408" r="5" fill="#FFFFFF"/>
+  <circle cx="758" cy="566" r="4" fill="#FFFFFF"/>
+
+  <!-- Wordmark -->
+  <text x="512" y="858" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-size="104"
+        font-weight="700" letter-spacing="12" fill="#F7FAFF">NEXUS<tspan fill="url(#neon)">V</tspan></text>
+</svg>
