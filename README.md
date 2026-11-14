@@ -34,5 +34,5 @@ You need **Git** and **Node.js 20 or newer**. It works on Windows, macOS, and Li
 
 ### 1. Get the code
 ```bash
-git clone git@github.com:korkordesmond/nexus-v.git
-cd nexus-v
+git clone https://github.com/korkordesmond/NEXUS-V-NASA-SPACE-APP-CHALLENGE.git
+cd NEXUS-V-NASA-SPACE-APP-CHALLENGE
