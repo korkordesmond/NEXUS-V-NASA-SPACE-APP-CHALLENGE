@@ -115,4 +115,3 @@ Parts marked with a `~` before the price include **estimates** (most costs, many
 - Run `git pull` before you start working, and commit small and often.
 - Tell the team before editing `src/data/mission.ts` or `src/lib/resources.ts`. Everyone depends on them, so merge conflicts there are the most likely.
 - Run `npm run build` before opening a pull request to catch type errors.
-
