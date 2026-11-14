@@ -20,16 +20,42 @@ const noScrollbar = "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webki
 /* ─────────── Left: resources ─────────── */
 
 function ResourcePanel({ resources, summary }: { resources: Resource[]; summary: string }) {
+  /* On phones the panel starts collapsed so the parts list is reachable without
+     scrolling past it. Warnings stay visible while collapsed. */
+  const [open, setOpen] = useState(false);
   const alerts = resources.filter((r) => r.status === "warn" || r.status === "over");
 
+  const alertBox = alerts.length > 0 && (
+    <div className={`border px-3 py-2 text-xs leading-relaxed ${alerts.some((r) => r.status === "over") ? "border-rose-500/40 bg-rose-500/10 text-rose-200" : "border-amber-400/40 bg-amber-400/10 text-amber-200"}`} style={{ fontFamily: MONO }}>
+      {alerts.map((r) => (
+        <p key={r.key}>{r.status === "over" ? `${r.label} is over its limit.` : `${r.label} is close to its limit.`}</p>
+      ))}
+    </div>
+  );
+
   return (
-    <aside className={`${panel} flex max-h-[28rem] min-h-0 flex-col overflow-hidden lg:max-h-none`}>
+    <aside className={`${panel} flex min-h-0 flex-col overflow-hidden ${open ? "max-h-[28rem]" : ""} lg:max-h-none`}>
       <div className="shrink-0">
-        <h2 className={eyebrow} style={{ fontFamily: MONO }}>Resources / limits</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className={eyebrow} style={{ fontFamily: MONO }}>Resources / limits</h2>
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-label={open ? "Hide resources" : "Show resources"}
+            className="-mr-2 -mt-2 grid size-10 place-items-center text-slate-400 transition hover:bg-white/10 hover:text-white lg:hidden"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`size-4 transition-transform duration-300 ${open ? "rotate-180" : ""}`}>
+              <path d="M6 9l6 6 6-6" strokeLinecap="square" strokeLinejoin="miter" />
+            </svg>
+          </button>
+        </div>
         <p className="mt-1 text-sm text-slate-300" style={{ fontFamily: SERIF }}>{summary}</p>
       </div>
 
-      <div className={`mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 ${noScrollbar}`}>
+      {!open && alertBox && <div className="mt-3 lg:hidden">{alertBox}</div>}
+
+      <div className={`mt-4 min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 ${noScrollbar} ${open ? "flex" : "hidden"} lg:flex`}>
         {resources.map((r) => {
           const pct = r.limit > 0 ? Math.min(100, (r.used / r.limit) * 100) : r.used > 0 ? 100 : 0;
           return (
@@ -48,13 +74,7 @@ function ResourcePanel({ resources, summary }: { resources: Resource[]; summary:
           );
         })}
 
-        {alerts.length > 0 && (
-          <div className={`border px-3 py-2 text-xs leading-relaxed ${alerts.some((r) => r.status === "over") ? "border-rose-500/40 bg-rose-500/10 text-rose-200" : "border-amber-400/40 bg-amber-400/10 text-amber-200"}`} style={{ fontFamily: MONO }}>
-            {alerts.map((r) => (
-              <p key={r.key}>{r.status === "over" ? `${r.label} is over its limit.` : `${r.label} is close to its limit.`}</p>
-            ))}
-          </div>
-        )}
+        {alertBox}
       </div>
     </aside>
   );
@@ -189,7 +209,7 @@ function PartList({ parts, equippedId, hidden, planet, onPick, onClear }: { part
   useArrowNav(ref, "button", { orientation: "vertical" });
 
   return (
-    <div ref={ref} className={`flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1 ${noScrollbar}`}>
+    <div ref={ref} className={`flex min-h-0 flex-1 flex-col gap-2 lg:overflow-y-auto lg:pr-1 ${noScrollbar}`}>
       {parts.map((p) => {
         const active = p.id === equippedId;
         return (
@@ -198,7 +218,7 @@ function PartList({ parts, equippedId, hidden, planet, onPick, onClear }: { part
               onClick={(e) => { onPick(p); e.currentTarget.focus(); }}
               data-advance
               aria-pressed={active}
-              className={`w-full border p-3 text-left pr-10 transition ${active ? "border-cyan-400/80 bg-cyan-400/10" : "border-white/10 bg-black/40 hover:border-white/30 hover:bg-white/[0.04]"}`}
+              className={`w-full border p-3 text-left pr-12 transition lg:pr-10 ${active ? "border-cyan-400/80 bg-cyan-400/10" : "border-white/10 bg-black/40 hover:border-white/30 hover:bg-white/[0.04]"}`}
             >
               <div className="flex items-baseline justify-between gap-3">
                 <span className="min-w-0 break-words font-semibold tracking-tight text-white" style={{ fontFamily: SERIF }}>{p.name}</span>
@@ -210,7 +230,7 @@ function PartList({ parts, equippedId, hidden, planet, onPick, onClear }: { part
               </dl>
             </button>
             {active && (
-              <button onClick={(e) => { e.stopPropagation(); onClear(); }} aria-label="Remove component" className="absolute right-2 top-2 grid size-7 place-items-center bg-rose-500/10 text-rose-400 opacity-100 transition focus:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-300">
+              <button onClick={(e) => { e.stopPropagation(); onClear(); }} aria-label="Remove component" className="absolute right-2 top-2 grid size-9 place-items-center lg:size-7 bg-rose-500/10 text-rose-400 opacity-100 transition focus:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-300">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="size-4"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
             )}
@@ -260,18 +280,20 @@ export default function Build() {
   };
 
   return (
-    <section className="flex h-full min-h-0 flex-col overflow-hidden px-3 pb-3 pt-3 sm:px-6 sm:pb-4 sm:pt-4">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-4 sm:pt-4">
       <div className={`grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto py-2 ${noScrollbar} lg:grid-cols-[16rem_minmax(0,1fr)_minmax(0,22rem)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden`}>
         <ResourcePanel resources={resources} summary={missionSummary(mission)} />
 
-        <div className="flex min-h-0 flex-col gap-4">
-          <div className="hidden min-h-0 flex-1 items-center justify-center overflow-hidden border border-white/10 bg-black/20 lg:flex">
+        <div className="flex min-h-0 flex-row gap-3 lg:flex-col lg:gap-4">
+          <div className="flex min-h-[9rem] w-20 shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-black/20 py-2 sm:w-28 lg:min-h-0 lg:w-auto lg:flex-1 lg:py-0">
             <RocketView parts={mission.parts} active={section.id} sections={sections} onSelect={handleImageSelect} />
           </div>
-          <SectionTabs sections={sections} index={safeIndex} parts={mission.parts} onPick={setIndex} />
+          <div className="min-w-0 flex-1 lg:flex-none">
+            <SectionTabs sections={sections} index={safeIndex} parts={mission.parts} onPick={setIndex} />
+          </div>
         </div>
 
-        <aside className={`${panel} flex max-h-[32rem] min-h-0 flex-col gap-3 overflow-hidden lg:max-h-none`}>
+        <aside className={`${panel} flex min-h-0 flex-col gap-3 lg:overflow-hidden`}>
           <div className="shrink-0">
             <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
               <h2 className={eyebrow} style={{ fontFamily: MONO }}>{section.title}</h2>
@@ -290,7 +312,7 @@ export default function Build() {
           <button
             onClick={next}
             disabled={!canAdvance}
-            className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] sm:px-10 text-cyan-300 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-30"
+            className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 justify-center px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-cyan-300 sm:px-10 sm:text-sm sm:tracking-[0.18em] transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-30"
             style={{ fontFamily: MONO }}
           >
             {isLast ? "Go to launch" : `Next: ${sections[safeIndex + 1].title}`}

@@ -22,6 +22,13 @@ const eyebrow =
 
 type Feed = "earth" | "forward" | "craft" | "system";
 
+const FEED_OPTIONS: [Feed, string, string, string][] = [
+  ["earth", "Earth", "Earth", "Ground camera, tracks the launch"],
+  ["forward", "Forward", "Forward", "Cockpit view"],
+  ["craft", "Spacecraft", "Craft", "Your build, chase cam"],
+  ["system", "Solar System (3D)", "System", "Drag to orbit, scroll to zoom"],
+];
+
 /* ─────────── Orbital mechanics (pure, no React) ─────────── */
 const AU_KM = 149_597_870.7;
 const C_KMS = 299_792.458;
@@ -41,6 +48,23 @@ const SPACE_KM = 100;
 
 const clamp = (v: number, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/* True from the lg breakpoint (1024px) up. Below it the floating, draggable
+   panels would cover the whole canvas, so the page stacks instead. */
+function useIsDesktop() {
+  const query = "(min-width: 1024px)";
+  const [matches, setMatches] = useState(
+    () => typeof window !== "undefined" && window.matchMedia(query).matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const onChange = () => setMatches(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return matches;
+}
 
 /* How long the team has to answer each debrief card, in ms. */
 const DEBRIEF_CARD_MS = 12_000;
@@ -497,6 +521,7 @@ function Draggable({
   onToggleCollapse,
   zIndex,
   onActivate,
+  docked = false,
 }: {
   children: React.ReactNode;
   title: string;
@@ -506,6 +531,8 @@ function Draggable({
   onToggleCollapse: () => void;
   zIndex: number;
   onActivate: () => void;
+  /** Phones/tablets: render in normal flow instead of floating over the canvas. */
+  docked?: boolean;
 }) {
   const elRef = useRef<HTMLDivElement>(null);
   const pos = useRef({ x: 0, y: 0 });
@@ -555,6 +582,12 @@ function Draggable({
     const parent = el?.parentElement;
     if (!el || !parent) return;
 
+    if (docked) {
+      el.style.transform = "";
+      el.style.removeProperty("--panel-max-h");
+      return;
+    }
+
     sizeBody();
     const L = limits();
     if (!L) return;
@@ -576,9 +609,10 @@ function Draggable({
     ro.observe(el);
     ro.observe(parent);
     return () => ro.disconnect();
-  }, []);
+  }, [docked]);
 
   const onHeaderDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (docked) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
     if ((e.target as HTMLElement).closest("button")) return;
     drag.current = {
@@ -624,7 +658,11 @@ function Draggable({
       onBlur={onBlur}
       onPointerDown={onActivate}
       style={{ zIndex }}
-      className="absolute left-0 top-0 flex w-60 max-w-[calc(100%-1.5rem)] flex-col will-change-transform"
+      className={
+        docked
+          ? "relative flex w-full shrink-0 flex-col"
+          : "absolute left-0 top-0 flex w-60 max-w-[calc(100%-1.5rem)] flex-col will-change-transform"
+      }
     >
       <div
         className={`flex flex-col border p-4 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${
@@ -634,9 +672,9 @@ function Draggable({
         }`}
       >
         <div
-          className={`flex shrink-0 touch-none select-none items-center justify-between transition-[margin] duration-300 ${
+          className={`flex shrink-0 ${docked ? "" : "touch-none"} select-none items-center justify-between transition-[margin] duration-300 ${
             isCollapsed ? "mb-0" : "mb-3"
-          } ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+          } ${docked ? "" : isDragging ? "cursor-grabbing" : "cursor-grab"}`}
           onPointerDown={onHeaderDown}
           onPointerMove={onHeaderMove}
           onPointerUp={endDrag}
@@ -650,7 +688,7 @@ function Draggable({
             aria-label={isCollapsed ? `Expand ${title}` : `Minimize ${title}`}
             aria-expanded={!isCollapsed}
             onClick={onToggleCollapse}
-            className="grid size-6 cursor-pointer place-items-center text-slate-400 transition-colors hover:bg-white/10 hover:text-white focus:outline-none"
+            className="grid size-9 cursor-pointer place-items-center lg:size-6 text-slate-400 transition-colors hover:bg-white/10 hover:text-white focus:outline-none"
           >
             <svg
               viewBox="0 0 24 24"
@@ -671,7 +709,7 @@ function Draggable({
           className={`overflow-y-auto overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-all duration-300 ${
             isCollapsed ? "opacity-0" : "opacity-100"
           }`}
-          style={{ maxHeight: isCollapsed ? 0 : "var(--panel-max-h, 60vh)" }}
+          style={{ maxHeight: isCollapsed ? 0 : docked ? "none" : "var(--panel-max-h, 60vh)" }}
         >
           {children}
         </div>
@@ -1278,7 +1316,7 @@ function LaunchButton({
       type="button"
       onClick={onLaunch}
       disabled={!ready}
-      className={`inline-flex h-11 items-center justify-center px-8 text-sm font-bold uppercase tracking-[0.18em] transition-all duration-200 ${
+      className={`inline-flex h-11 flex-1 items-center justify-center px-8 text-sm sm:flex-none font-bold uppercase tracking-[0.18em] transition-all duration-200 ${
         ready
           ? "border border-emerald-500 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
           : "border border-emerald-500/20 bg-transparent text-emerald-500/50 cursor-not-allowed"
@@ -1304,6 +1342,7 @@ type ScoreEntry = { title: string; choice: string; delta: number };
 export default function Launch() {
   const navigate = useNavigate();
   const { mission, update } = useMission();
+  const isDesktop = useIsDesktop();
 
   const [elapsed, setElapsed] = useState(0);
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -1896,13 +1935,13 @@ export default function Launch() {
   const cardUrgent = cardMsLeft <= 3000;
 
   return (
-    <section className="relative flex h-full flex-col gap-3 overflow-hidden px-3 pb-3 pt-3 sm:px-6 sm:pb-4 sm:pt-4">
+    <section className="relative flex h-full flex-col gap-3 overflow-hidden px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-4 sm:pt-4">
       {/* Stage: canvas + floating panels share this positioned box */}
-      <div className="relative min-h-0 flex-1">
+      <div className="relative flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:block lg:overflow-visible">
       {/* ─────────── Center Canvas ─────────── */}
       <div
         ref={canvasRef}
-        className={`absolute inset-0 z-0 touch-none overflow-hidden border border-white/20 bg-black shadow-2xl ${
+        className={`relative z-0 h-[40dvh] min-h-[14rem] shrink-0 touch-none overflow-hidden border border-white/20 bg-black shadow-2xl lg:absolute lg:inset-0 lg:h-auto lg:min-h-0 ${
           isDraggingCamera.current ? "cursor-grabbing" : "cursor-crosshair"
         }`}
       >
@@ -2199,7 +2238,7 @@ export default function Launch() {
         <div className="absolute bottom-3 right-3 z-10 flex flex-col items-center gap-2 sm:bottom-6 sm:right-6 border border-white/20 bg-black/60 p-1.5 backdrop-blur-md">
           <button
             onClick={() => setZoom((z) => Math.min(5, z + 0.2))}
-            className="grid size-8 place-items-center text-slate-400 hover:bg-white/10 hover:text-white"
+            className="grid size-10 place-items-center text-slate-400 hover:bg-white/10 hover:text-white lg:size-8"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4">
               <path d="M12 5v14M5 12h14" strokeLinecap="square" strokeLinejoin="miter" />
@@ -2210,7 +2249,7 @@ export default function Launch() {
           </div>
           <button
             onClick={() => setZoom((z) => Math.max(0.2, z - 0.2))}
-            className="grid size-8 place-items-center text-slate-400 hover:bg-white/10 hover:text-white"
+            className="grid size-10 place-items-center text-slate-400 hover:bg-white/10 hover:text-white lg:size-8"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4">
               <path d="M5 12h14" strokeLinecap="square" strokeLinejoin="miter" />
@@ -2219,7 +2258,30 @@ export default function Launch() {
         </div>
       </div>
 
-      {/* ─────────── Camera Feeds panel ─────────── */}
+      {/* ─────────── Camera feed switcher (phones / tablets) ─────────── */}
+      {!isDesktop && (
+        <div role="group" aria-label="Camera feeds" className="grid shrink-0 grid-cols-4 gap-2">
+          {FEED_OPTIONS.map(([key, , short]) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={activeFeed === key}
+              onClick={() => setActiveFeed(key)}
+              className={`h-11 min-w-0 truncate border px-1 text-[11px] font-bold uppercase tracking-wider transition ${
+                activeFeed === key
+                  ? "border-cyan-400/80 bg-cyan-400/10 text-cyan-200"
+                  : "border-white/10 bg-black/40 text-slate-400 active:bg-white/10"
+              }`}
+              style={{ fontFamily: MONO }}
+            >
+              {short}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ─────────── Camera Feeds panel (desktop) ─────────── */}
+      {isDesktop && (
       <Draggable
         title="Camera Feeds"
         anchor="left"
@@ -2230,14 +2292,7 @@ export default function Launch() {
         onActivate={() => setActivePanel("camera")}
       >
         <div className="flex flex-col gap-2 pb-2 select-none">
-          {(
-            [
-              ["earth", "Earth", "Ground camera, tracks the launch"],
-              ["forward", "Forward", "Cockpit view"],
-              ["craft", "Spacecraft", "Your build, chase cam"],
-              ["system", "Solar System (3D)", "Drag to orbit, scroll to zoom"],
-            ] as [Feed, string, string][]
-          ).map(([key, name, sub]) => (
+          {FEED_OPTIONS.map(([key, name, , sub]) => (
             <button
               key={key}
               onClick={() => setActiveFeed(key)}
@@ -2266,10 +2321,12 @@ export default function Launch() {
           ))}
         </div>
       </Draggable>
+      )}
 
       {/* ─────────── Telemetry panel ─────────── */}
       <Draggable
         title="Telemetry"
+        docked={!isDesktop}
         anchor="right"
         offset={{ x: 16, y: 16 }}
         isCollapsed={isResourceCollapsed}
@@ -2374,7 +2431,7 @@ export default function Launch() {
       {/* ─────────── Bottom panel ─────────── */}
       </div>
 
-      <div className="relative z-20 flex max-h-[46dvh] shrink-0 flex-col overflow-y-auto border border-white/20 bg-[#05070a]/95 p-3 shadow-2xl sm:p-4">
+      <div className="relative z-20 flex max-h-[38dvh] shrink-0 flex-col sm:max-h-[46dvh] overflow-y-auto border border-white/20 bg-[#05070a]/95 p-3 shadow-2xl sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
           <div className="flex items-baseline gap-3">
             <span className={eyebrow} style={{ fontFamily: MONO }}>
@@ -2433,11 +2490,11 @@ export default function Launch() {
             {quickStrip.map(([k, v]) => (
               <div
                 key={k}
-                className="flex items-center justify-between gap-2 text-[10px] text-slate-400"
+                className="flex min-w-0 items-center justify-between gap-2 text-[10px] text-slate-400"
                 style={{ fontFamily: MONO }}
               >
                 <span>{k}</span>
-                <span className="tabular-nums text-slate-200" style={{ fontFamily: MONO }}>
+                <span className="truncate tabular-nums text-slate-200" style={{ fontFamily: MONO }}>
                   {v}
                 </span>
               </div>
@@ -2466,11 +2523,11 @@ export default function Launch() {
                             : "SIMULATION RUNNING..."}
           </p>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
             {isLaunched && !isDone && !fuelEmpty && !failure && !activeEvent && (
               <button
                 onClick={() => setIsPaused((p) => !p)}
-                className="inline-flex h-11 items-center gap-2 border border-white/20 bg-black/40 px-6 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-white/10"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 border border-white/20 bg-black/40 px-6 sm:flex-none text-sm font-bold uppercase tracking-widest text-white transition hover:bg-white/10"
                 style={{ fontFamily: MONO }}
               >
                 {isPaused ? "Resume" : "Pause"}
