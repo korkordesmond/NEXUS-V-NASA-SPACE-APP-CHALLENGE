@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
 import StageNav from "../components/StageNav";
 import { useMission } from "../state/MissionContext";
@@ -209,7 +210,7 @@ function SurveySkiff({ className = "" }: { className?: string }) {
 
 type Craft = {
   id: string;
-  Comp: (props: { className?: string }) => JSX.Element;
+  Comp: (props: { className?: string }) => ReactElement;
   top: string;
   left: string;
   size: number;
@@ -267,9 +268,8 @@ function SpacecraftBackdrop() {
             transform: flip ? "scaleX(-1)" : undefined,
             animationDuration: `${duration}s`,
             animationDelay: `-${delay}s`,
-            // @ts-expect-error CSS custom property
             "--drift": `${drift}px`,
-          }}
+          } as CSSProperties}
         >
           <Comp className="h-full w-full" />
         </div>

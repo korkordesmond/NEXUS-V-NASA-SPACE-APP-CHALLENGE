@@ -1,4 +1,3 @@
-
 import type { Mission } from "../state/MissionContext";
 import {
   TASKS,
@@ -27,7 +26,9 @@ export const RETURN_CAPSULE = { mass: 50, cost: 60 }; // Earth-entry capsule (my
 export type Status = "ok" | "warn" | "over" | "pending";
 
 export interface Resource {
-  key: "budget" | "mass" | "power" | "dv" | "comms";
+  // "fuel" is read by score.ts and Launch.tsx; computeResources does not emit it yet,
+  // so those lookups simply return undefined and are guarded.
+  key: "budget" | "mass" | "power" | "dv" | "comms" | "fuel";
   label: string;
   unit: string;
   used: number;

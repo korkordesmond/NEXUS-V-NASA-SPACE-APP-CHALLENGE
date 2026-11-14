@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import { Link } from "react-router-dom";
 
 const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
@@ -94,7 +95,7 @@ function ExplorerProbe({ className = "" }: { className?: string }) {
 
 type Craft = {
   id: string;
-  Comp: (props: { className?: string }) => JSX.Element;
+  Comp: (props: { className?: string }) => ReactElement;
   top: string;
   left: string;
   size: number;
@@ -158,9 +159,8 @@ export default function Landing() {
               transform: flip ? "scaleX(-1)" : undefined,
               animationDuration: `${duration}s`,
               animationDelay: `-${delay}s`,
-              // @ts-expect-error CSS custom property
               "--drift": `${drift}px`,
-            }}
+            } as CSSProperties}
           >
             <Comp className="h-full w-full" />
           </div>

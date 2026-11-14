@@ -1,7 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { STAGES } from "../stages";
 
-const SERIF = '"Source Serif 4", "Iowan Old Style", Charter, Georgia, serif';
 const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
 
 export default function Layout() {
