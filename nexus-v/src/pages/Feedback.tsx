@@ -71,7 +71,7 @@ export default function Feedback() {
   ];
 
   return (
-    <section className="flex h-full flex-col overflow-hidden px-4 pb-4 pt-4 sm:px-6 sm:pt-6">
+    <section className="flex h-full flex-col overflow-hidden px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-6">
       <header className="mx-auto w-full max-w-5xl shrink-0 text-center">
         <p className={eyebrow} style={{ fontFamily: MONO }}>
           Mission debrief · {mission.planet.name} · {TASK_LABEL[mission.task]}
@@ -81,17 +81,17 @@ export default function Feedback() {
         </h1>
       </header>
 
-      <div className="mx-auto mt-6 min-h-0 w-full max-w-5xl flex-1 overflow-y-auto overscroll-contain pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div className="mx-auto mt-4 min-h-0 sm:mt-6 w-full max-w-5xl flex-1 overflow-y-auto overscroll-contain pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_1fr]">
-          <div className={`${card} flex flex-col items-center justify-center py-8 relative`}>
+          <div className={`${card} relative flex flex-row items-center justify-center gap-6 py-5 sm:gap-8 lg:flex-col lg:gap-0 lg:py-8`}>
             <div className="absolute -left-[1px] -top-[1px] size-3 border-l-2 border-t-2 border-cyan-400" />
             <div className="absolute -right-[1px] -top-[1px] size-3 border-r-2 border-t-2 border-cyan-400" />
             <div className="absolute -bottom-[1px] -left-[1px] size-3 border-b-2 border-l-2 border-cyan-400" />
             <div className="absolute -bottom-[1px] -right-[1px] size-3 border-b-2 border-r-2 border-cyan-400" />
-            <span className={`text-[6rem] font-semibold leading-none sm:text-[8rem] ${GRADE_COLOR[score.grade]}`} style={{ fontFamily: SERIF }} aria-label={`Grade ${score.grade}`}>
+            <span className={`text-[5rem] font-semibold leading-none sm:text-[6rem] lg:text-[8rem] ${GRADE_COLOR[score.grade]}`} style={{ fontFamily: SERIF }} aria-label={`Grade ${score.grade}`}>
               {score.grade}
             </span>
-            <p className="mt-4 flex items-baseline gap-1 tabular-nums text-white" style={{ fontFamily: MONO }}>
+            <p className="flex items-baseline gap-1 tabular-nums text-white lg:mt-4" style={{ fontFamily: MONO }}>
               <span className="text-4xl font-medium tracking-tight">{shown.toLocaleString()}</span>
               <span className="text-sm text-slate-500">/ 1,000</span>
             </p>
@@ -102,7 +102,7 @@ export default function Feedback() {
               <div key={c.key}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-sm font-semibold text-slate-200" style={{ fontFamily: SERIF }}>
-                    {c.label} <span className="ml-2 text-[11px] font-normal text-slate-500" style={{ fontFamily: MONO }}>{c.hint}</span>
+                    {c.label} <span className="mt-0.5 block text-[11px] font-normal text-slate-500 sm:ml-2 sm:mt-0 sm:inline" style={{ fontFamily: MONO }}>{c.hint}</span>
                   </span>
                   <span className="shrink-0 text-xs tabular-nums text-slate-400" style={{ fontFamily: MONO }}>{Math.round(c.score)} / {c.max}</span>
                 </div>
@@ -116,7 +116,7 @@ export default function Feedback() {
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
           {facts.map(([k, v]) => (
-            <div key={k} className="min-w-0 border border-white/20 bg-black/40 px-3 py-3 sm:px-4">
+            <div key={k} className="min-w-0 border border-white/20 bg-black/40 px-3 py-3 last:col-span-2 sm:px-4 sm:last:col-span-1">
               <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500" style={{ fontFamily: MONO }}>{k}</p>
               <p className="mt-1 break-words text-base tabular-nums text-white sm:text-lg" style={{ fontFamily: MONO }}>{v}</p>
             </div>
@@ -129,7 +129,7 @@ export default function Feedback() {
             {score.notes.map((note, i) => (
               <li key={i} className="flex gap-3 text-sm leading-relaxed text-slate-300" style={{ fontFamily: MONO }}>
                 <span aria-hidden className={`mt-1.5 size-2 shrink-0 ${TONE_DOT[note.tone]}`} />
-                <span>{note.text}</span>
+                <span className="min-w-0 break-words">{note.text}</span>
               </li>
             ))}
           </ul>
@@ -159,7 +159,7 @@ export default function Feedback() {
 
       <div className="shrink-0 pt-4">
         <StageNav>
-          <button onClick={newMission} className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] sm:px-10 text-cyan-300 transition hover:bg-cyan-400/20" style={{ fontFamily: MONO }}>
+          <button onClick={newMission} className="group inline-flex items-center gap-2 border border-cyan-400/50 bg-cyan-400/10 justify-center px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-cyan-300 sm:px-10 sm:text-sm sm:tracking-[0.18em] transition hover:bg-cyan-400/20" style={{ fontFamily: MONO }}>
             Start new mission
             <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
           </button>

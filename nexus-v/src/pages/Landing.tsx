@@ -152,8 +152,8 @@ export default function Landing() {
             style={{
               top,
               left,
-              width: size,
-              height: size,
+              width: `min(${size}px, 24vw)`,
+              height: `min(${size}px, 24vw)`,
               opacity,
               color: "#22d3ee",
               transform: flip ? "scaleX(-1)" : undefined,
@@ -167,7 +167,7 @@ export default function Landing() {
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-1 flex-col p-4 sm:p-8">
+      <div className="relative z-10 flex flex-1 flex-col p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-8">
 
         {/* Header */}
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 pb-4">
@@ -188,8 +188,8 @@ export default function Landing() {
             className="mx-auto flex w-full max-w-5xl animate-slide-in flex-col gap-6 lg:grid lg:grid-cols-[1fr_2fr] lg:items-stretch"
           >
             {/* Left Side: Title & Navigation */}
-            <div className="flex flex-col justify-between border border-white/20 bg-black/40 p-5 sm:p-8">
-              <div>
+            <div className="flex flex-row items-end justify-between gap-4 border border-white/20 bg-black/40 p-5 sm:p-8 lg:flex-col lg:items-stretch">
+              <div className="min-w-0">
                 <p className="text-xs uppercase tracking-[0.3em] text-cyan-500 mb-2">
                   Phase 0{active + 1}
                 </p>
@@ -199,16 +199,16 @@ export default function Landing() {
               </div>
 
               {/* Chevron-only Navigation */}
-              <div className="mt-8 flex items-center gap-4 sm:mt-12">
+              <div className="flex shrink-0 items-center gap-3 sm:gap-4 lg:mt-12">
                 <button
                   onClick={prevStep}
-                  className="flex size-12 items-center justify-center border border-white/20 bg-white/5 text-slate-400 transition hover:border-cyan-400/50 hover:bg-cyan-400/10 hover:text-cyan-300"
+                  className="flex size-11 items-center justify-center border border-white/20 sm:size-12 bg-white/5 text-slate-400 transition hover:border-cyan-400/50 hover:bg-cyan-400/10 hover:text-cyan-300"
                 >
                   <ChevronLeft className="size-6" />
                 </button>
                 <button
                   onClick={nextStep}
-                  className="flex size-12 items-center justify-center border border-white/20 bg-white/5 text-slate-400 transition hover:border-cyan-400/50 hover:bg-cyan-400/10 hover:text-cyan-300"
+                  className="flex size-11 items-center justify-center border border-white/20 sm:size-12 bg-white/5 text-slate-400 transition hover:border-cyan-400/50 hover:bg-cyan-400/10 hover:text-cyan-300"
                 >
                   <ChevronRight className="size-6" />
                 </button>
@@ -233,16 +233,21 @@ export default function Landing() {
         {/* Footer */}
         <footer className="flex shrink-0 flex-col gap-6 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
           {/* Progress Dots */}
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             {STEPS.map((s, i) => (
               <button
                 key={s.title}
                 onClick={() => setActive(i)}
                 aria-label={`Show ${s.title}`}
-                className={`h-2 transition-all duration-300 ${
-                  i === active ? "w-8 bg-cyan-400" : "w-4 bg-white/20 hover:bg-white/40"
-                }`}
-              />
+                aria-current={i === active}
+                className="group flex h-10 items-center px-0.5"
+              >
+                <span
+                  className={`block h-2 transition-all duration-300 ${
+                    i === active ? "w-8 bg-cyan-400" : "w-4 bg-white/20 group-hover:bg-white/40"
+                  }`}
+                />
+              </button>
             ))}
           </div>
 
