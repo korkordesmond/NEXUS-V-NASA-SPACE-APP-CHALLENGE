@@ -1,140 +1,121 @@
 import { useEffect, useState } from "react";
 
-/**
- * Team storage + live updates.
- *
- * IMPORTANT: this version keeps teams in the browser's localStorage, so it only
- * syncs between tabs/windows of the SAME browser on the SAME computer. That is
- * enough to build and test the lobby. For players on different devices you need
- * a backend (REST + WebSocket, Firebase, Supabase, ...). Only the functions in
- * this file need to change; the pages don't care where the data lives.
- */
-
 export const MAX_MEMBERS = 4;
 
+// Explicitly append /api to the base URL
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`;
+
 export interface Member {
-    id: string;
-    name: string;
-    isCaptain: boolean;
+  id: string;
+  name: string;
+  isCaptain: boolean;
 }
 
 export interface Team {
-    code: string;
-    name: string;
-    members: Member[];
-    started: boolean;
+  code: string;
+  name: string;
+  members: Member[];
+  started: boolean;
 }
 
 export type JoinResult =
-    | { ok: true; team: Team; memberId: string }
-    | { ok: false; reason: "not-found" | "full" | "started" };
+  | { ok: true; team: Team; memberId: string }
+  | { ok: false; reason: "not-found" | "full" | "started" };
 
-const TEAMS_KEY = "nexusv:teams";
 const ME_KEY = "nexusv:me";
 
-function shortId(): string {
-    return crypto.randomUUID().replace(/-/g, "").slice(0, 8);
-}
-
-function readAll(): Record<string, Team> {
-    try {
-        return JSON.parse(localStorage.getItem(TEAMS_KEY) ?? "{}");
-    } catch {
-        return {};
-    }
-}
-
-function writeAll(teams: Record<string, Team>) {
-    try {
-        localStorage.setItem(TEAMS_KEY, JSON.stringify(teams));
-    } catch {
-        /* storage unavailable; ignore */
-    }
-}
-
-/** "Who am I in this tab?" Uses sessionStorage so each tab is its own player. */
 export function getMe(): { code: string; memberId: string } | null {
-    try {
-        return JSON.parse(sessionStorage.getItem(ME_KEY) ?? "null");
-    } catch {
-        return null;
-    }
+  try {
+    return JSON.parse(sessionStorage.getItem(ME_KEY) ?? "null");
+  } catch {
+    return null;
+  }
 }
 
 function setMe(code: string, memberId: string) {
-    try {
-        sessionStorage.setItem(ME_KEY, JSON.stringify({ code, memberId }));
-    } catch {
-        /* ignore */
+  try {
+    sessionStorage.setItem(ME_KEY, JSON.stringify({ code, memberId }));
+  } catch { /* ignore */ }
+}
+
+export async function createTeam(name: string): Promise<Team> {
+  const res = await fetch(`${API_URL}/teams`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name })
+  });
+  
+  if (!res.ok) throw new Error('Failed to create team');
+  
+  const data = await res.json();
+  setMe(data.team.code, data.memberId);
+  return data.team;
+}
+
+export async function joinTeam(code: string, playerName: string): Promise<JoinResult> {
+  try {
+    const res = await fetch(`${API_URL}/teams/${code}/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: playerName })
+    });
+
+    if (!res.ok) {
+      if (res.status === 404) return { ok: false, reason: "not-found" };
+      if (res.status === 403) return { ok: false, reason: "started" };
+      if (res.status === 400) return { ok: false, reason: "full" };
+      throw new Error('Unknown error');
     }
+
+    const data = await res.json();
+    setMe(code, data.memberId);
+    return { ok: true, team: data.team, memberId: data.memberId };
+  } catch (err) {
+    return { ok: false, reason: "not-found" };
+  }
 }
 
-export function getTeam(code: string): Team | null {
-    return readAll()[code] ?? null;
+export async function startTeam(code: string): Promise<void> {
+  await fetch(`${API_URL}/teams/${code}/start`, { method: 'POST' });
 }
 
-export function createTeam(name: string): Team {
-    const code = shortId();
-    const captain: Member = { id: shortId(), name: "Captain", isCaptain: true };
-    const team: Team = { code, name: name.trim(), members: [captain], started: false };
-
-    const all = readAll();
-    all[code] = team;
-    writeAll(all);
-    setMe(code, captain.id);
-    return team;
+export async function getTeam(code: string): Promise<Team | null> {
+  try {
+    const res = await fetch(`${API_URL}/teams/${code}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.team;
+  } catch {
+    return null;
+  }
 }
 
-export function joinTeam(code: string, playerName: string): JoinResult {
-    const all = readAll();
-    const team = all[code];
-    if (!team) return { ok: false, reason: "not-found" };
-    if (team.started) return { ok: false, reason: "started" };
-    if (team.members.length >= MAX_MEMBERS) return { ok: false, reason: "full" };
-
-    const member: Member = { id: shortId(), name: playerName.trim(), isCaptain: false };
-    team.members.push(member);
-    writeAll(all);
-    setMe(code, member.id);
-    return { ok: true, team, memberId: member.id };
-}
-
-/** The captain can start at any time, even with fewer than MAX_MEMBERS players. */
-export function startTeam(code: string) {
-    const all = readAll();
-    if (!all[code]) return;
-    all[code].started = true;
-    writeAll(all);
-}
-
-/** Live view of a team. Updates when another tab changes it. */
 export function useTeam(code: string | undefined): Team | null {
-    const [team, setTeam] = useState<Team | null>(() => (code ? getTeam(code) : null));
+  const [team, setTeam] = useState<Team | null>(null);
 
-    useEffect(() => {
-        if (!code) {
-            setTeam(null);
-            return;
-        }
+  useEffect(() => {
+    if (!code) {
+      setTeam(null);
+      return;
+    }
 
-        const refresh = () => {
-            const next = getTeam(code);
-            setTeam((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
-        };
+    let isMounted = true;
 
-        refresh();
-        const onStorage = (e: StorageEvent) => {
-            if (e.key === TEAMS_KEY || e.key === null) refresh();
-        };
-        window.addEventListener("storage", onStorage);
-        // polling as a safety net (and the same shape a backend version would use)
-        const id = setInterval(refresh, 1500);
+    const refresh = async () => {
+      const next = await getTeam(code);
+      if (isMounted) {
+        setTeam((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+      }
+    };
 
-        return () => {
-            window.removeEventListener("storage", onStorage);
-            clearInterval(id);
-        };
-    }, [code]);
+    refresh();
+    const id = setInterval(refresh, 1500);
 
-    return team;
+    return () => {
+      isMounted = false;
+      clearInterval(id);
+    };
+  }, [code]);
+
+  return team;
 }

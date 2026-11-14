@@ -44,13 +44,15 @@ export default function Landing() {
   const [active, setActive] = useState(0);
   const step = STEPS[active];
 
+  // Auto-advance the carousel every 6 seconds
   useEffect(() => {
-    const id = setInterval(
-      () => setActive((i) => (i + 1) % STEPS.length),
-      6000
-    );
+    const id = setInterval(() => {
+      setActive((i) => (i + 1) % STEPS.length);
+    }, 6000);
+    
+    // Cleanup on unmount
     return () => clearInterval(id);
-  }, [active]);
+  }, []); // Empty dependency array means this runs once on mount
 
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-[#070912] text-slate-100">
@@ -90,7 +92,7 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Tutorial */}
+        {/* Tutorial Carousel */}
         <section className="flex min-h-0 flex-1 items-center px-4 sm:px-6 md:px-10 lg:px-16">
           <div
             key={active}

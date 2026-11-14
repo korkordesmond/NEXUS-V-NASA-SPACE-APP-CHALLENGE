@@ -14,9 +14,14 @@ export default function App() {
     <MissionProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/team" element={<CreateTeam />} />
+          
+          {/* The invite link route! */}
           <Route path="/join/:code" element={<JoinTeam />} />
+          
+          {/* Mission Routes wrapped in Layout */}
           <Route element={<Layout />}>
             <Route path="/plan" element={<Plan />} />
             <Route path="/build" element={<Build />} />
