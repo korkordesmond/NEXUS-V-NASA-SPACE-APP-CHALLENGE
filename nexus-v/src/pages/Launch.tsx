@@ -45,13 +45,10 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /* How long the team has to answer each debrief card, in ms. */
 const DEBRIEF_CARD_MS = 12_000;
 
-/* Quality grade → base score weight. The real-world score for a decision
-   is derived from grade × stakes, plus the deltas of cost/health/data. */
-const QUALITY_WEIGHT: Record<Decision["quality"], number> = {
-  good: 1.0,
-  ok: 0.35,
-  bad: -0.9,
-};
+/* Quality score (0..1) → base score weight. Same tiers as Feedback and score.ts:
+   0.8 and up is a good call, under 0.5 is a bad one. The real-world score for a
+   decision is derived from this weight plus the deltas of cost/health/data. */
+const qualityWeight = (q: Decision["quality"]) => (q >= 0.8 ? 1.0 : q >= 0.5 ? 0.35 : -0.9);
 
 /* ─────────── Procedural textures (built once, cached) ─────────── */
 type Tex = { earth: string; clouds: string; stars: string };
@@ -436,8 +433,7 @@ function scoreChoice(
   delaySec: number,
   remainingAfter: { health: number; dataLoss: number },
 ) {
-  const base = (c.effect.quality ?? "ok") as Decision["quality"];
-  const baseScore = 100 * QUALITY_WEIGHT[base];
+  const baseScore = 100 * qualityWeight(c.quality);
 
   const costPenalty = (c.effect.cost ?? 0) * 0.6;
   const healthPenalty = Math.max(0, -(c.effect.health ?? 0)) * 0.9;

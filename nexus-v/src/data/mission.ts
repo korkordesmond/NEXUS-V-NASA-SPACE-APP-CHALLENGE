@@ -57,6 +57,7 @@ export interface Planet {
   captureDv: number; // km/s orbit insertion burn (elliptical science orbit)
   landingDv: number; // km/s extra for landing where there is no atmosphere
   route: string;
+  color?: string; // display colour for orbits and markers
 }
 
 /*
@@ -70,42 +71,42 @@ export interface Planet {
 */
 export const PLANETS: Planet[] = [
   {
-    id: "mercury", name: "Mercury", distanceAU: 0.39, solarFlux: 9116,
+    id: "mercury", color: "#9ca3af", name: "Mercury", distanceAU: 0.39, solarFlux: 9116,
     hasAtmosphere: false, canLand: true, canOrbit: true, canReturn: false,
     travelDays: 2420, returnWaitDays: 0,
     departureDv: 3.95, captureDv: 0.9, landingDv: 3.0,
     route: "MESSENGER style: Earth, Venus and Mercury flybys",
   },
   {
-    id: "venus", name: "Venus", distanceAU: 0.72, solarFlux: 2611,
+    id: "venus", color: "#fcd34d", name: "Venus", distanceAU: 0.72, solarFlux: 2611,
     hasAtmosphere: true, canLand: true, canOrbit: true, canReturn: true,
     travelDays: 150, returnWaitDays: 470,
     departureDv: 3.48, captureDv: 1.3, landingDv: 0,
     route: "Direct transfer (Venus Express took 153 days)",
   },
   {
-    id: "mars", name: "Mars", distanceAU: 1.52, solarFlux: 589,
+    id: "mars", color: "#f87171", name: "Mars", distanceAU: 1.52, solarFlux: 589,
     hasAtmosphere: true, canLand: true, canOrbit: true, canReturn: true,
     travelDays: 210, returnWaitDays: 450,
     departureDv: 3.59, captureDv: 1.3, landingDv: 0,
     route: "Direct transfer (Perseverance took 203 days)",
   },
   {
-    id: "jupiter", name: "Jupiter", distanceAU: 5.2, solarFlux: 50.5,
+    id: "jupiter", color: "#fdba74", name: "Jupiter", distanceAU: 5.2, solarFlux: 50.5,
     hasAtmosphere: true, canLand: false, canOrbit: true, canReturn: false,
     travelDays: 1795, returnWaitDays: 0,
     departureDv: 4.54, captureDv: 0.55, landingDv: 0,
     route: "Juno style: one Earth gravity assist",
   },
   {
-    id: "saturn", name: "Saturn", distanceAU: 9.54, solarFlux: 15.04,
+    id: "saturn", color: "#fde68a", name: "Saturn", distanceAU: 9.54, solarFlux: 15.04,
     hasAtmosphere: true, canLand: false, canOrbit: true, canReturn: false,
     travelDays: 2450, returnWaitDays: 0,
     departureDv: 3.94, captureDv: 0.65, landingDv: 0,
     route: "Cassini style: Venus, Venus, Earth and Jupiter assists",
   },
   {
-    id: "neptune", name: "Neptune", distanceAU: 30.07, solarFlux: 1.5,
+    id: "neptune", color: "#60a5fa", name: "Neptune", distanceAU: 30.07, solarFlux: 1.5,
     hasAtmosphere: true, canLand: false, canOrbit: false, canReturn: false,
     travelDays: 4380, returnWaitDays: 0,
     departureDv: 7.15, captureDv: 0, landingDv: 0,
